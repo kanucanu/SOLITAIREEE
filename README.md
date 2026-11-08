@@ -10,7 +10,11 @@ Běží v prohlížeči na PC, iPadu (iOS 17) i telefonu. Je zdarma, bez reklam,
 - 5 scén × 6 úkolů (Korálový útes → Perlová jeskyně → Potopená loď → Zahrada sasanek → Palác vln)
 - Průvodkyně želvička Tóňa, truhly s odměnami, bonus mincí každých 20 minut, album scén
 - Automatické ukládání do `localStorage` – i rozehraného levelu včetně historie tahů
-- Vše je vlastní grafika (SVG generované kódem) a zvuky (Web Audio) – žádné externí obrázky ani knihovny
+- **Hudba na pozadí** podle prostředí – každá kapitola má vlastní skladbu (calypso na útesu, tajemné zvonky v jeskyni,
+  námořnická píseň u lodi, valčík v zahradě, fanfára v paláci). Při dlouhé sérii přidá hudba bicí.
+- **Efekty série (combo):** počítadlo ×N, bubliny, vlnky, pochvaly (Pěkně! · Super! · Úžasné! …), záře a hejno ryb;
+  tóny karet stoupají v tónině aktuální hudby
+- Vše je vlastní grafika (SVG generované kódem), zvuky i hudba (Web Audio) – žádné externí obrázky, nahrávky ani knihovny
 
 ## Spuštění na PC
 
@@ -46,6 +50,8 @@ prohlížeče a díky service workeru funguje i offline.
 
 > ⚠️ Safari a ikona na ploše mají **oddělené úložiště** – postup z jednoho se nepřenese do druhého.
 > V anonymním režimu Safari se postup po zavření panelu smaže.
+> 🔇 Na iPhonu ztlumí **tichý režim** (přepínač na boku / Ovládací centrum) zvuky i hudbu webové hry – pro zvuk ho vypni.
+> Hudbu a zvuky jde zvlášť vypnout v **Nastavení**, tlačítko reproduktoru ve hře vypne obojí najednou.
 
 ## Ovládání
 - Klepni na odkrytou kartu o **1 vyšší nebo nižší** než karta na odkládací hromádce (K ↔ A navazují).
@@ -73,7 +79,8 @@ js/levels.js            rozložení karet (ASCII) a nastavení 50 levelů
 js/engine.js            herní logika (generátor řešitelných rozdání, tahy, hvězdy)
 js/art.js, scenes.js    SVG grafika a 5 dekoračních scén s úkoly
 js/storage.js           ukládání do localStorage
-js/sound.js             zvuky (Web Audio API)
+js/sound.js             zvukové efekty (Web Audio API)
+js/music.js             hudba na pozadí – 6 témat, plánovač not, syntetické nástroje
 js/ui.js, home.js, map.js, game.js, main.js   uživatelské rozhraní
 sw.js, manifest.webmanifest, icons/           offline režim a ikona aplikace
 tests/                  testy

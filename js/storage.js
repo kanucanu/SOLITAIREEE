@@ -18,7 +18,7 @@
       tasks: [0, 0, 0, 0, 0],            // počet splněných úkolů v každé scéně
       chests: [false, false, false, false, false],
       boosters: { wild: 2, undo: 3, shuffle: 1 },
-      settings: { sound: true, hints: true },
+      settings: { sound: true, music: true, hints: true },
       bonusAt: 0,                        // kdy půjde vyzvednout další bonus (ms)
       run: null,                         // rozehraný level { level, state }
       tips: {},                          // které nápovědy už hráč viděl

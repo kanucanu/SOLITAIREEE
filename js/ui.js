@@ -18,6 +18,7 @@
       this.current = name;
       document.body.dataset.screen = name;
       this.updateWallet();
+      if (CD.Music) CD.Music.forScreen(name);     // hudba podle prostředí
     },
 
     updateWallet() {
@@ -111,9 +112,9 @@
       }
     },
     /* přelet karty z jednoho místa na druhé */
-    flyCard(fromRect, toRect, card, { flip = false, duration = 260 } = {}) {
+    flyCard(fromRect, toRect, card, { flip = false, duration = 260, cls = '' } = {}) {
       const el = document.createElement('div');
-      el.className = 'card flyer' + (flip ? ' down' : '');
+      el.className = 'card flyer' + (flip ? ' down' : '') + (cls ? ' ' + cls : '');
       el.innerHTML = this.cardInner(card);
       Object.assign(el.style, { left: toRect.left + 'px', top: toRect.top + 'px', width: toRect.width + 'px', height: toRect.height + 'px', fontSize: toRect.width + 'px' });
       $('#fx').appendChild(el);
@@ -149,6 +150,7 @@
       const d = CD.Store.data;
       const m = UI.modal({ title: 'Nastavení', html: `
 <div class="set-list">
+  <label class="set-row"><span>${UI.icon('music')} Hudba</span><input type="checkbox" data-s="music" ${d.settings.music ? 'checked' : ''}><i class="tgl"></i></label>
   <label class="set-row"><span>${UI.icon('sound')} Zvuky</span><input type="checkbox" data-s="sound" ${d.settings.sound ? 'checked' : ''}><i class="tgl"></i></label>
   <label class="set-row"><span>${UI.icon('bulb')} Automatická nápověda</span><input type="checkbox" data-s="hints" ${d.settings.hints ? 'checked' : ''}><i class="tgl"></i></label>
 </div>
@@ -162,6 +164,7 @@
         d.settings[inp.dataset.s] = inp.checked;
         CD.Store.save();
         CD.Sound.unlock(); CD.Sound.play('click');
+        CD.Music.refresh();
         if (CD.Game.st) CD.Game.renderHud();
       }));
       m.el.querySelector('[data-a="help"]').addEventListener('click', () => { m.close(); UI.help(); });

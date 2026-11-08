@@ -24,7 +24,7 @@
           const d = this.noiseBuf.getChannelData(0);
           for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
         }
-        if (this.ctx.state === 'suspended') this.ctx.resume();
+        if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});   // iOS: i stav „interrupted"
       } catch (e) { /* bez zvuku */ }
     },
     tone(freq, dur = 0.15, type = 'sine', vol = 0.2, delay = 0, slideTo = 0) {
@@ -51,14 +51,43 @@
       src.connect(f); f.connect(g); g.connect(this.master);
       src.start(t); src.stop(t + dur + 0.05);
     },
+    /* „šum vlny" stoupající filtrem – efekt pro combo */
+    noiseSweep(dur = 0.4, vol = 0.08) {
+      if (!this.on || !this.ctx || !this.noiseBuf) return;
+      const t = this.ctx.currentTime;
+      const src = this.ctx.createBufferSource(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+      src.buffer = this.noiseBuf; src.loop = true;
+      f.type = 'bandpass'; f.Q.value = 1.4;
+      f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(5000, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(this.master);
+      src.start(t); src.stop(t + dur + 0.05);
+    },
     play(name, arg = 0) {
-      if (!this.on || !this.ctx) return;
+      if (!this.ctx) return;
+      // při fanfárách hudbu krátce ztlumit
+      if (CD.Music && (name === 'win' || name === 'lose' || name === 'task')) CD.Music.duck(name === 'task' ? 1.6 : 3);
+      if (!this.on) return;
       switch (name) {
         case 'card': {
-          const f = SCALE[Math.min(Math.max(arg - 1, 0), SCALE.length - 1)];
+          // tón stoupá se sérií a ladí s tóninou hudby aktuálního prostředí
+          const f = CD.Music ? CD.Music.cardFreq(arg) : SCALE[Math.min(Math.max(arg - 1, 0), SCALE.length - 1)];
           this.noise(0.06, 0.08, 0, 2600);
           this.tone(f, 0.22, 'triangle', 0.2);
           this.tone(f * 2, 0.14, 'sine', 0.05);
+          if (arg >= 5) this.tone(f * 3, 0.3, 'sine', 0.025 + Math.min(arg, 15) * 0.002, 0.03);   // třpyt při sérii
+          break;
+        }
+        case 'combo': {   // arg = stupeň série 1–5
+          const ns = CD.Music ? CD.Music.keyNotes(Math.min(3 + arg, 8)) : [784, 988, 1175, 1568, 1976];
+          ns.forEach((f, i) => { this.tone(f, 0.22, 'triangle', 0.11, i * 0.055); this.tone(f * 2, 0.16, 'sine', 0.035, i * 0.055 + 0.02); });
+          this.noiseSweep(0.45, 0.06 + arg * 0.012);
+          if (arg >= 3) this.tone(ns[0] / 2, 0.6, 'sine', 0.12, 0, ns[0]);
+          break;
+        }
+        case 'comboEnd': {
+          const ns = CD.Music ? CD.Music.keyNotes(3) : [784, 659, 523];
+          this.tone(ns[2], 0.14, 'triangle', 0.07); this.tone(ns[0], 0.2, 'triangle', 0.06, 0.08);
           break;
         }
         case 'draw': this.noise(0.14, 0.12, 0, 1400); this.tone(330, 0.12, 'sine', 0.07, 0, 220); break;

@@ -52,16 +52,18 @@
       $('#homeGuide').addEventListener('click', () => CD.Home.tapGuide());
       $('#stock').addEventListener('pointerdown', e => { e.preventDefault(); CD.Game.tapStock(); });
       $('#gHome').addEventListener('click', () => CD.Game.leave());
+      // tlačítko reproduktoru ve hře vypíná/zapíná hudbu i zvuky najednou (zvlášť jdou v Nastavení)
       $('#gSound').addEventListener('click', () => {
-        const s = CD.Store.data.settings;
-        s.sound = !s.sound; CD.Store.save();
+        const s = CD.Store.data.settings, on = !(s.sound || s.music);
+        s.sound = on; s.music = on; CD.Store.save();
         CD.Sound.unlock(); CD.Sound.play('click');
+        CD.Music.refresh();
         CD.Game.renderHud();
       });
       document.querySelectorAll('.boost[data-b]').forEach(b => b.addEventListener('click', () => CD.Game.booster(b.dataset.b)));
 
       // zvuk na iOS lze spustit jen po dotyku
-      const unlock = () => CD.Sound.unlock();
+      const unlock = () => { CD.Sound.unlock(); CD.Music.kick(); };
       document.addEventListener('pointerdown', unlock, { passive: true });
       document.addEventListener('touchend', unlock, { passive: true });
 
@@ -72,7 +74,11 @@
 
       addEventListener('resize', () => this.onResize());
       addEventListener('orientationchange', () => setTimeout(() => this.onResize(), 250));
-      document.addEventListener('visibilitychange', () => { if (document.hidden) CD.Store.save(); });
+      // na pozadí (jiná aplikace, zamčený displej) hudbu pozastavit
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { CD.Store.save(); CD.Music.stop(); if (CD.Sound.ctx) CD.Sound.ctx.suspend().catch(() => {}); }
+        else if (CD.Sound.ctx) { CD.Sound.ctx.resume().catch(() => {}); CD.Music.kick(); }
+      });
       addEventListener('pagehide', () => CD.Store.save());
 
       this.openTitle();

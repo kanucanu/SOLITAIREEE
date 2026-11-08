@@ -1,8 +1,8 @@
 /* Korálové sny – service worker: hra funguje i offline.
    Strategie "nejdřív síť": online se vždy načte nejnovější verze, offline se použije uložená kopie. */
-const CACHE = 'koralove-sny-v1';
+const CACHE = 'koralove-sny-v2';
 const FILES = ['./', './index.html', './css/style.css', './manifest.webmanifest', './icons/icon.svg', './icons/icon-180.png',
-  './js/storage.js', './js/levels.js', './js/engine.js', './js/sound.js', './js/art.js', './js/scenes.js',
+  './js/storage.js', './js/levels.js', './js/engine.js', './js/sound.js', './js/music.js', './js/art.js', './js/scenes.js',
   './js/ui.js', './js/home.js', './js/map.js', './js/game.js', './js/main.js'];
 
 self.addEventListener('install', e => {

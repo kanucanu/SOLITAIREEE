@@ -11,7 +11,8 @@ Spuštění: `python3 -m http.server 8000` v tomto adresáři → http://localho
 - `js/art.js` – SVG kreslící funkce (korály, ryby, želvička Tóňa…)
 - `js/scenes.js` – 5 dekoračních scén po 6 úkolech (meta-vrstva)
 - `js/storage.js` – ukládání do localStorage (klíč `koraloveSny.save.v1`)
-- `js/sound.js` – zvuky přes Web Audio API
+- `js/sound.js` – zvukové efekty přes Web Audio API
+- `js/music.js` – generovaná hudba na pozadí (téma podle obrazovky/kapitoly, intenzita podle série)
 - `js/ui.js`, `js/home.js`, `js/map.js`, `js/game.js`, `js/main.js` – UI a obrazovky
 - Skripty jsou klasické `<script>` (ne ES moduly), vše ve jmenném prostoru `window.CD`, aby hra šla otevřít i přes `file://`.
 

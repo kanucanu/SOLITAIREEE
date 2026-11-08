@@ -9,6 +9,9 @@
   const GX = 1.06;                      // vodorovná mezera mezi kartami
   const PRICES = { wild: 250, undo: 60, shuffle: 120 };
   const LOCK_COLORS = ['', 'gold', 'pink', 'blue'];
+  // stupeň série: 0 (méně než 3) … 4 (15 a víc) – určuje barvu a sílu efektů
+  const comboTier = n => n >= 15 ? 4 : n >= 10 ? 3 : n >= 5 ? 2 : n >= 3 ? 1 : 0;
+  const COMBO_WORDS = { 3: 'Pěkně!', 5: 'Super!', 10: 'Úžasné!', 15: 'Neuvěřitelné!', 20: 'Mistrovské!', 25: 'Legendární!' };
 
   const G = {
     st: null, def: null, els: [], undoStack: [], ended: false,
@@ -55,11 +58,15 @@
         return el;
       });
       $('#gLevel').textContent = `Level ${this.st.level}`;
+      if (!$('#combo')) $('.piles').insertAdjacentHTML('beforeend', '<div class="combo" id="combo" aria-hidden="true"><b></b><span>COMBO</span></div>');
     },
 
     /* ---------- rozměry ---------- */
     layout() {
       if (!this.st) return;
+      // telefon na výšku: lišta ve dvou řádcích, velikost karet v liště podle šířky displeje
+      const stacked = matchMedia('(max-width: 600px) and (orientation: portrait)').matches;
+      if (stacked) $('#scr-game').style.setProperty('--bcw', Math.round(Math.max(54, Math.min(innerWidth * 0.2, 92))) + 'px');
       const board = $('#board'), r = board.getBoundingClientRect(), lay = this.def.lay;
       const w = r.width - 16, h = r.height - 16;
       const unitsW = lay.maxX * GX / 2 + 1, unitsH = (lay.maxY / 2 + 1) * 1.4;
@@ -76,9 +83,11 @@
         });
       });
       requestAnimationFrame(() => board.classList.remove('no-anim'));
-      const bar = $('.g-bar');
-      const bcw = Math.floor(Math.max(34, Math.min(cw * 1.08, (bar.clientHeight - 18) / 1.4, 118)));
-      $('#scr-game').style.setProperty('--bcw', bcw + 'px');
+      if (!stacked) {
+        const bar = $('.g-bar');
+        const bcw = Math.floor(Math.max(34, Math.min(cw * 1.08, (bar.clientHeight - 18) / 1.4, 118)));
+        $('#scr-game').style.setProperty('--bcw', bcw + 'px');
+      }
       this.renderStock();
       this.renderWaste();
     },
@@ -130,6 +139,8 @@
       const k = st.streak % 7;
       $('#gStreak').innerHTML = `<i style="width:${(k / 7) * 100}%"></i><span>Série ${st.streak}</span>`;
       $('#gStreak').classList.toggle('hot', st.streak >= 7);
+      this.renderCombo();
+      CD.Music.intensity(st.streak >= 10 ? 2 : st.streak >= 5 ? 1 : 0);
       const proj = st.plus ? 1 : E().stockLeft(st) >= def.t3 ? 3 : E().stockLeft(st) >= def.t2 ? 2 : 1;
       $('#gStars').innerHTML = CD.UI.starsHTML(proj, 3);
       document.querySelectorAll('.boost[data-b]').forEach(b => {
@@ -139,7 +150,7 @@
         b.querySelector('.bcount').innerHTML = cnt > 0 ? `${cnt}` : `${CD.UI.icon('coin')}${PRICES[t]}`;
         b.classList.toggle('paid', cnt <= 0);
       });
-      $('#gSound').innerHTML = CD.UI.icon(d.settings.sound ? 'sound' : 'mute');
+      $('#gSound').innerHTML = CD.UI.icon(d.settings.sound || d.settings.music ? 'sound' : 'mute');
     },
 
     persist() {
@@ -156,11 +167,11 @@
 
     wasteRect() { const w = $('#waste'); return (w.querySelector('.wtop') || w).getBoundingClientRect(); },
 
-    fly(fromRect, card, flip) {
+    fly(fromRect, card, flip, cls = '') {
       this.flights++;
       const to = $('#waste').getBoundingClientRect();
       const toRect = { left: to.left, top: to.top, width: to.width, height: to.height };
-      return CD.UI.flyCard(fromRect, toRect, card, { flip }).then(() => {
+      return CD.UI.flyCard(fromRect, toRect, card, { flip, cls }).then(() => {
         this.flights--;
         if (this.flights === 0) this.renderWaste();
       });
@@ -181,7 +192,8 @@
       const from = el.getBoundingClientRect();
       const ev = E().play(st, i);
       el.classList.add('gone');
-      this.fly(from, st.waste[st.waste.length - 1], false);
+      const tier = comboTier(st.streak);
+      this.fly(from, st.waste[st.waste.length - 1], false, tier >= 2 ? `hot t${tier}` : '');
       CD.Sound.play('card', st.streak);
       CD.UI.float(from.left + from.width / 2, from.top, `+${ev.coin} ${CD.UI.icon('coin')}`, ev.coinCard ? 'coin big' : 'coin');
       if (ev.coinCard) setTimeout(() => CD.Sound.play('coin'), 120);
@@ -194,6 +206,7 @@
       if (ev.flipped.length) setTimeout(() => CD.Sound.play('flip'), 120);
       this.renderCards();
       this.renderHud();
+      this.comboFx(st.streak, from);
       this.persist();
       this.armIdle();
       if (ev.won) setTimeout(() => this.win(), 420);
@@ -213,11 +226,13 @@
       this.pushUndo();
       const cards = $('#stock').querySelectorAll('.sc');
       const from = (cards[cards.length - 1] || $('#stock')).getBoundingClientRect();
+      const had = st.streak;
       const c = E().draw(st);
       this.renderStock();
       this.fly(from, c, true);
       CD.Sound.play('draw');
       this.renderHud();
+      if (had >= 3) this.comboBreak(had);
       this.persist();
       this.armIdle();
       this.checkStuck();
@@ -275,6 +290,91 @@
         this.persist();
         this.checkStuck();
       }
+    },
+
+    /* ---------- efekty série (combo) ---------- */
+    renderCombo() {
+      const el = $('#combo');
+      if (!el) return;
+      const n = this.st.streak;
+      el.className = `combo t${comboTier(n)}${n >= 2 ? ' on' : ''}`;
+      el.querySelector('b').textContent = '×' + n;
+    },
+
+    comboFx(n, from) {
+      const tier = comboTier(n), fx = $('#fx');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // počítadlo poskočí, lišta série pulzne
+      const c = $('#combo');
+      if (c && n >= 2) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
+      const sb = $('#gStreak');
+      sb.classList.remove('bump'); void sb.offsetWidth; sb.classList.add('bump');
+      if (reduced) { if (COMBO_WORDS[n]) this.callout(COMBO_WORDS[n], tier); return; }
+      // bublinky z místa odehrané karty
+      const cx = from.left + from.width / 2, cy = from.top + from.height / 2;
+      const count = Math.min(4 + n, 16);
+      for (let k = 0; k < count; k++) {
+        const b = document.createElement('i');
+        const a = Math.random() * Math.PI * 2, dist = 30 + Math.random() * (40 + tier * 18);
+        b.className = 'cbub' + (tier >= 2 && k % 3 === 0 ? ` spark t${tier}` : '');
+        const sz = 5 + Math.random() * (8 + tier * 2);
+        Object.assign(b.style, { left: cx + 'px', top: cy + 'px', width: sz + 'px', height: sz + 'px' });
+        b.style.setProperty('--dx', Math.cos(a) * dist + 'px');
+        b.style.setProperty('--dy', (Math.sin(a) * dist - 40 - Math.random() * 40) + 'px');
+        b.style.animationDelay = (Math.random() * 0.08) + 's';
+        fx.appendChild(b);
+        setTimeout(() => b.remove(), 1100);
+      }
+      // vlnka kolem odkládací hromádky
+      if (tier >= 1) {
+        const w = this.wasteRect(), r = document.createElement('i');
+        r.className = `cripple t${tier}`;
+        Object.assign(r.style, { left: (w.left + w.width / 2) + 'px', top: (w.top + w.height / 2) + 'px', width: w.width * 1.1 + 'px', height: w.width * 1.1 + 'px' });
+        fx.appendChild(r);
+        setTimeout(() => r.remove(), 750);
+      }
+      // pochvala při milnících série
+      const word = COMBO_WORDS[n] || (n > 25 && n % 5 === 0 ? 'Úžasné!' : '');
+      if (word) {
+        this.callout(word, tier);
+        setTimeout(() => CD.Sound.play('combo', Math.min(5, tier + (n >= 20 ? 1 : 0))), 60);
+        if (n >= 5) {
+          const g = document.createElement('div');
+          g.className = `combo-glow t${tier}`;
+          fx.appendChild(g);
+          setTimeout(() => g.remove(), 1200);
+        }
+        if (n >= 10) this.fishRush(tier);
+      }
+    },
+
+    callout(text, tier) {
+      document.querySelectorAll('#fx .callout').forEach(o => o.remove());   // nová pochvala nahradí starou
+      const w = this.wasteRect(), e = document.createElement('div');
+      e.className = `callout t${tier}`;
+      e.textContent = text;
+      e.style.top = Math.max(80, w.top - (matchMedia('(max-width: 600px) and (orientation: portrait)').matches ? 90 : 135)) + 'px';
+      $('#fx').appendChild(e);
+      setTimeout(() => e.remove(), 1400);
+    },
+
+    fishRush(tier) {
+      const e = document.createElement('div');
+      const cols = [['#ffd166', '#ff8a3d'], ['#7fe7ff', '#2f8fe0'], ['#ff9ec7', '#e04a8a'], ['#b8ff8a', '#3fae5a']];
+      const [c1, c2] = cols[(tier + Math.floor(Math.random() * 4)) % cols.length];
+      e.className = 'fish-rush';
+      e.style.top = (22 + Math.random() * 30) + '%';
+      e.innerHTML = `<svg viewBox="-40 -40 260 160">${CD.Art.school(0, 0, 1, c1, c2, false, 6)}</svg>`;
+      $('#fx').appendChild(e);
+      setTimeout(() => e.remove(), 2600);
+    },
+
+    comboBreak(n) {
+      const c = $('#combo');
+      if (!c) return;
+      const r = c.getBoundingClientRect();
+      CD.UI.float(r.left + r.width / 2, r.top, `×${n}`, 'combo-end');
+      CD.Sound.play('comboEnd');
     },
 
     shake(el) {
