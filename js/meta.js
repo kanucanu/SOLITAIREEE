@@ -13,6 +13,7 @@
   function grant(r) {
     const d = data(), parts = [];
     if (r.coins) { d.coins += r.coins; parts.push(`+${r.coins} ${CD.UI.icon('coin')}`); }
+    if (r.pearls) { d.pearls += r.pearls; parts.push(`+${r.pearls} ${CD.UI.icon('pearl')}`); }
     ['wild', 'undo', 'shuffle'].forEach(b => { if (r[b]) { d.boosters[b] += r[b]; parts.push(`+${r[b]} ${CD.UI.icon(b)}`); } });
     let extra = '';
     if (r.sticker) for (let k = 0; k < r.sticker; k++) extra += ' ' + M.giveSticker().short;
@@ -22,17 +23,17 @@
   /* ---------- denní výzva + kalendář (7 dní za sebou) ---------- */
   const CAL = [
     { coins: 100 }, { undo: 1, coins: 50 }, { coins: 150 }, { wild: 1 },
-    { coins: 200 }, { shuffle: 1, undo: 1 }, { coins: 400, wild: 2, sticker: 2 },
+    { coins: 200 }, { shuffle: 1, undo: 1 }, { coins: 400, wild: 2, sticker: 2, pearls: 5 },
   ];
   const calIcon = r => r.sticker ? '🎁' : r.wild ? '✨' : r.shuffle ? '🔀' : r.undo ? '↩️' : '🪙';
-  const calText = r => [r.coins && `${r.coins} mincí`, r.wild && `${r.wild}× žolík`, r.undo && `${r.undo}× zpět`, r.shuffle && `${r.shuffle}× zamíchat`, r.sticker && `${r.sticker} nálepky`].filter(Boolean).join(' + ');
+  const calText = r => [r.coins && `${r.coins} mincí`, r.wild && `${r.wild}× žolík`, r.undo && `${r.undo}× zpět`, r.shuffle && `${r.shuffle}× zamíchat`, r.sticker && `${r.sticker} nálepky`, r.pearls && `${r.pearls} perel`].filter(Boolean).join(' + ');
 
   /* ---------- nálepky (24 mořských tvorů ve 4 sadách) ---------- */
   const SETS = [
-    { name: 'Korálový útes', color: '#ff9fb8', reward: { coins: 300, wild: 1 } },
-    { name: 'Tvorové hlubin', color: '#9a8cff', reward: { coins: 400, undo: 2 } },
-    { name: 'Ledové moře', color: '#8fd8ff', reward: { coins: 400, shuffle: 2 } },
-    { name: 'Poklady moře', color: '#ffd166', reward: { coins: 600, wild: 2 } },
+    { name: 'Korálový útes', color: '#ff9fb8', reward: { coins: 300, wild: 1, pearls: 5 } },
+    { name: 'Tvorové hlubin', color: '#9a8cff', reward: { coins: 400, undo: 2, pearls: 5 } },
+    { name: 'Ledové moře', color: '#8fd8ff', reward: { coins: 400, shuffle: 2, pearls: 5 } },
+    { name: 'Poklady moře', color: '#ffd166', reward: { coins: 600, wild: 2, pearls: 10 } },
   ];
   const STICKERS = [
     ['🐠', 'Klauní rybka'], ['🐡', 'Čtverzubec'], ['🐢', 'Kareta'], ['🪸', 'Korál'], ['🦐', 'Kreveta'], ['🐟', 'Modrá rybka'],
@@ -62,6 +63,8 @@
     { id: 'obst', ico: '🧽', name: 'Čistič moře', desc: 'Odstraň 100 překážek', goal: 100, val: d => d.stats.obst || 0, coins: 300 },
     { id: 'stk', ico: '📒', name: 'Kompletní sbírka', desc: 'Sesbírej všech 24 nálepek', goal: 24, val: uniq, coins: 1000 },
   ];
+
+  const achPearls = a => Math.max(2, Math.round(a.coins / 100));
 
   /* ---------- obyvatelé scén (přistěhují se po 2., 4. a 6. úkolu) ---------- */
   const RES = [
@@ -163,7 +166,7 @@ ${!done && d.daily.last >= 0 && d.daily.last < today() - 1 ? '<p class="m-small"
       const html = SETS.map((set, si) => {
         const items = STICKERS.filter(s => s.set === si);
         const have = items.filter(s => d.stickers[s.id]).length;
-        return `<div class="stk-set"><div class="stk-head" style="--sc:${set.color}"><b>${set.name}</b><span>${have}/6 ${d.sets[si] ? '✅' : `· odměna ${set.reward.coins} ${CD.UI.icon('coin')}`}</span></div>
+        return `<div class="stk-set"><div class="stk-head" style="--sc:${set.color}"><b>${set.name}</b><span>${have}/6 ${d.sets[si] ? '✅' : `· odměna ${set.reward.coins} ${CD.UI.icon('coin')} + ${set.reward.pearls} ${CD.UI.icon('pearl')}`}</span></div>
 <div class="stk-grid">${items.map(s => d.stickers[s.id] ? `<div class="stk-card" style="--sc:${set.color}"><span class="stk">${s.e}</span><small>${s.name}</small>${d.stickers[s.id] > 1 ? `<i>×${d.stickers[s.id]}</i>` : ''}</div>` : '<div class="stk-card empty"><span class="stk">?</span><small>???</small></div>').join('')}</div></div>`;
       }).join('');
       CD.UI.modal({ title: 'Sbírka tvorů', cls: 'm-wide m-stickers', html: `<p class="m-text">Nálepky padají z výher (hlavně za 3 ★), z bossů, denních výzev a truhel. Kompletní sada = odměna!</p>${html}<p class="m-small">Máš ${uniq(d)} z 24 nálepek.</p>` });
@@ -175,22 +178,22 @@ ${!done && d.daily.last >= 0 && d.daily.last < today() - 1 ? '<p class="m-small"
       if (d.chal[n]) return '🏆 Výzvu tohoto levelu už máš splněnou – gratulace k opakování!';
       d.chal[n] = true;
       d.stats.chal = (d.stats.chal || 0) + 1;
-      d.coins += 100;
-      return `🏆 Výzva splněna poprvé: +100 ${CD.UI.icon('coin')}`;
+      d.coins += 100; d.pearls += 2;
+      return `🏆 Výzva splněna poprvé: +100 ${CD.UI.icon('coin')} +2 ${CD.UI.icon('pearl')}`;
     },
 
     /* ===== úspěchy ===== */
     checkAchievements() {
       const d = data(), fresh = ACH.filter(a => !d.ach[a.id] && a.val(d) >= a.goal);
       if (!fresh.length) return;
-      fresh.forEach(a => { d.ach[a.id] = true; d.coins += a.coins; });
+      fresh.forEach(a => { d.ach[a.id] = true; d.coins += a.coins; d.pearls += achPearls(a); });
       CD.Store.save();
       CD.UI.updateWallet();
       fresh.forEach((a, k) => setTimeout(() => {
         CD.Sound.play('trophy');
         const e = document.createElement('div');
         e.className = 'ach-pop';
-        e.innerHTML = `<span class="ach-ico">${a.ico}</span><div><small>Nový úspěch!</small><b>${a.name}</b><span>+${a.coins} ${CD.UI.icon('coin')}</span></div>`;
+        e.innerHTML = `<span class="ach-ico">${a.ico}</span><div><small>Nový úspěch!</small><b>${a.name}</b><span>+${a.coins} ${CD.UI.icon('coin')} +${achPearls(a)} ${CD.UI.icon('pearl')}</span></div>`;
         $('#fx').appendChild(e);
         setTimeout(() => e.remove(), 3600);
       }, k * 3800));
@@ -201,7 +204,7 @@ ${!done && d.daily.last >= 0 && d.daily.last < today() - 1 ? '<p class="m-small"
       const rows = ACH.map(a => {
         const v = Math.min(a.val(d), a.goal), done = !!d.ach[a.id];
         return `<div class="ach ${done ? 'done' : ''}"><span class="ach-ico">${a.ico}</span><div class="ach-txt"><b>${a.name}</b><small>${a.desc}</small>
-<div class="ach-bar"><i style="width:${v / a.goal * 100}%"></i><span>${v}/${a.goal}</span></div></div><div class="ach-rw">${done ? '✅' : `+${a.coins}<br>${CD.UI.icon('coin')}`}</div></div>`;
+<div class="ach-bar"><i style="width:${v / a.goal * 100}%"></i><span>${v}/${a.goal}</span></div></div><div class="ach-rw">${done ? '✅' : `+${a.coins} ${CD.UI.icon('coin')}<br>+${achPearls(a)} ${CD.UI.icon('pearl')}`}</div></div>`;
       }).join('');
       CD.UI.modal({ title: 'Úspěchy', cls: 'm-wide m-ach', html: `<p class="m-text">Získáno ${ACH.filter(a => d.ach[a.id]).length} z ${ACH.length}</p><div class="ach-list">${rows}</div>` });
     },

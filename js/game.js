@@ -7,7 +7,7 @@
   const { $ } = CD.UI;
   const E = () => CD.Engine;
   const GX = 1.06;                      // vodorovná mezera mezi kartami
-  const PRICES = { wild: 250, undo: 60, shuffle: 120 };
+  const PRICES = CD.Shop.PRICES;          // ceny pomocníků v mincích (společné s obchodem)
   const LOCK_COLORS = ['', 'gold', 'pink', 'blue'];
   // stupeň série: 0 (méně než 3) … 4 (15 a víc) – určuje barvu a sílu efektů
   const comboTier = n => n >= 15 ? 4 : n >= 10 ? 3 : n >= 5 ? 2 : n >= 3 ? 1 : 0;
@@ -379,7 +379,8 @@
         CD.UI.float(r.left + r.width / 2, r.top, 'Mušle se otevřela!', 'info');
       }
       if (ev.pearl) {
-        CD.UI.float(from.left + from.width / 2, from.top - 30, `Perla +40 ${CD.UI.icon('coin')}`, 'coin big');
+        this.st.pearlsWon = (this.st.pearlsWon || 0) + 1;
+        CD.UI.float(from.left + from.width / 2, from.top - 30, `+1 ${CD.UI.icon('pearl')} +40 ${CD.UI.icon('coin')}`, 'coin big');
         setTimeout(() => CD.Sound.play('coin'), 200);
       }
     },
@@ -558,6 +559,7 @@
       this.ended = true;
       clearTimeout(this.idleT);
       d.coins += st.coinsWon;
+      d.pearls += st.pearlsWon || 0;
       d.run = null;
       CD.Store.save();
       CD.Sound.play('lose');
@@ -566,7 +568,7 @@
 <div class="lose-ico">🐢💧</div>
 <p class="m-text big">${reason === 'limit' ? 'Došly ti tahy!' : 'Tentokrát to nevyšlo.'}</p>
 ${reason === 'limit' ? `<p class="m-text">Ve výzvě máš jen <b>${st.limit}</b> tahů. Zkus delší série a méně líznutí.</p>` : ''}
-<p class="m-text">Mince ze série si necháváš: <b>+${st.coinsWon}</b> ${CD.UI.icon('coin')}</p>
+<p class="m-text">Mince ze série si necháváš: <b>+${st.coinsWon}</b> ${CD.UI.icon('coin')}${st.pearlsWon ? ` a perly z mušlí: <b>+${st.pearlsWon}</b> ${CD.UI.icon('pearl')}` : ''}</p>
 <div class="m-btns"><button class="btn btn-blue" data-home>Domů</button><button class="btn btn-green" data-retry>Zkusit znovu</button></div>` });
       m.el.querySelector('[data-home]').addEventListener('click', () => { m.close(true); CD.Home.open(); });
       m.el.querySelector('[data-retry]').addEventListener('click', () => { m.close(true); this.start(st.level, { resume: false, mode: st.mode }); });
@@ -578,9 +580,14 @@ ${reason === 'limit' ? `<p class="m-text">Ve výzvě máš jen <b>${st.limit}</b
       clearTimeout(this.idleT); clearTimeout(this.stuckT);
       const stars = E().stars(st), rem = E().stockLeft(st);
       const base = mode === 'daily' ? 150 : 40 + Math.min(n, 100) * 4, stockBonus = rem * 15, total = base + stockBonus + st.coinsWon;
-      let gained = 0;
+      let gained = 0, pearls = st.pearlsWon || 0;
+      const pearlNotes = [];
+      if (pearls) pearlNotes.push(CD.Shop.addPearls(pearls, 'Perly z mušlí'));
       if (!mode) {
         const prev = d.best[n] || 0;
+        if (stars === 3 && prev < 3) pearlNotes.push(CD.Shop.addPearls(1, 'První 3 ★ v levelu'));
+        if (def.boss && !prev) pearlNotes.push(CD.Shop.addPearls(5, 'Poražený boss'));
+        if (!prev && (n === 50 || n === CD.Levels.COUNT)) pearlNotes.push(CD.Shop.addPearls(10, 'Dohraný svět'));
         gained = Math.max(0, stars - prev);
         d.best[n] = Math.max(prev, stars);
         d.stars += gained;
@@ -594,10 +601,17 @@ ${reason === 'limit' ? `<p class="m-text">Ve výzvě máš jen <b>${st.limit}</b
       d.stats.obst = (d.stats.obst || 0) + (st.obst || 0);
       // odměny meta-vrstvy: denní kalendář, výzva, nálepky
       const notes = [];
-      if (mode === 'daily') notes.push(CD.Meta.dailyWin());
+      if (mode === 'daily') {
+        const fresh = !CD.Meta.dailyDone();
+        notes.push(CD.Meta.dailyWin());
+        if (fresh) pearlNotes.push(CD.Shop.addPearls(2, 'Denní výzva'));
+      }
       if (mode === 'challenge') notes.push(CD.Meta.challengeWin(n));
       const drop = CD.Meta.stickerDrop(def.boss && !mode ? 1 : mode === 'daily' ? 0.5 : stars === 3 ? 0.3 : 0.12);
       if (drop) notes.push(drop);
+      notes.push(...pearlNotes);
+      const banked = CD.Shop.fillBank(total);
+      if (banked) notes.push(`🐷 Do kasičky: +${banked} ${CD.UI.icon('coin')}${d.bank >= CD.Shop.BANK_CAP ? ' – kasička je plná, rozbij ji v Obchodě!' : ''}`);
       CD.Store.save();
       CD.Sound.play('win');
       CD.UI.confetti();

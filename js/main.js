@@ -29,6 +29,8 @@
 
     init() {
       CD.Store.load();
+      CD.Shop.applyLook();          // koupený rub karet a stůl
+      CD.Pay.checkUrl();            // návrat z platební brány / testovací režim obchodu
       document.documentElement.style.setProperty('--vh', innerHeight + 'px');
 
       // tlačítka s data-act (fungují na všech obrazovkách)
@@ -44,6 +46,7 @@
           case 'help': CD.UI.help(); break;
           case 'settings': CD.UI.settings(); break;
           case 'title': Main.openTitle(); break;
+          case 'shop': CD.Shop.open(); break;
         }
       });
       $('#tasksBtn').addEventListener('click', () => CD.Home.openTasks());

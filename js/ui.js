@@ -26,6 +26,7 @@
       const extra = (this.current === 'game' && CD.Game.st && !CD.Game.ended) ? CD.Game.st.coinsWon : 0;
       document.querySelectorAll('.coins-val').forEach(e => { e.textContent = UI.fmt(d.coins + extra); });
       document.querySelectorAll('.stars-val').forEach(e => { e.textContent = UI.fmt(d.stars); });
+      document.querySelectorAll('.pearls-val').forEach(e => { e.textContent = UI.fmt(d.pearls); });
     },
 
     /* ---------- karty ---------- */
@@ -141,6 +142,7 @@
   <div class="help-row"><div class="help-ico">🔒</div><p>Karta se <b>zámkem</b> se uvolní, až odehraješ kartu s <b>klíčem</b> stejné barvy.</p></div>
   <div class="help-row"><div class="help-ico">⭐</div><p>Čím víc karet ti na konci zůstane v balíčku, tím víc <b>hvězdiček</b> (1–3). Hvězdičkami plníš úkoly ve scénách a opravuješ podmořské království.</p></div>
   <div class="help-row"><div class="help-ico">✨</div><p><b>Pomocníci:</b> Žolík (pasuje na cokoliv), Zpět (vrátí tah), Zamíchat (přeskládá karty na stole), Nápověda (zdarma). Když dojdou karty, můžeš si za mince dokoupit +5 karet.</p></div>
+  <div class="help-row"><div class="help-ico">🦪</div><p><b>Perly</b> jsou vzácná měna. Najdeš je v mušlích, za první 3 hvězdy, za bosse, úspěchy a denní výzvy. V <b>Obchodě</b> za ně koupíš pomocníky, nový vzhled karet a stolu nebo rozbiješ kasičku plnou mincí.</p></div>
   <div class="help-row"><div class="help-ico">💾</div><p>Postup se <b>ukládá automaticky</b> v tomto prohlížeči – i rozehraný level.</p></div>
 </div><div class="m-btns"><button class="btn btn-green" data-close>Rozumím</button></div>` })
         .el.querySelector('[data-close]').addEventListener('click', () => UI.closeAllModals());
@@ -171,9 +173,10 @@
       m.el.querySelector('[data-a="title"]').addEventListener('click', () => { UI.closeAllModals(); CD.Main.openTitle(); });
       m.el.querySelector('[data-a="reset"]').addEventListener('click', async () => {
         m.close();
-        if (!await UI.confirm('Smazat postup?', 'Opravdu smazat všechny levely, hvězdičky, mince i opravené scény? Tohle nejde vrátit.', 'Smazat', 'Ne', 'btn-red')) return;
+        if (!await UI.confirm('Smazat postup?', `Opravdu smazat všechny levely, hvězdičky, mince, perly i opravené scény?${d.purchases.length ? ' <b>Smažou se i zakoupené perly a vzhledy.</b>' : ''} Tohle nejde vrátit.`, 'Smazat', 'Ne', 'btn-red')) return;
         if (!await UI.confirm('Určitě?', 'Poslední šance – celý postup bude smazán.', 'Ano, smazat', 'Nechat', 'btn-red')) return;
         CD.Store.reset();
+        CD.Shop.applyLook();
         UI.closeAllModals();
         CD.Main.openTitle();
         UI.toast('Postup byl smazán. Hodně štěstí!');

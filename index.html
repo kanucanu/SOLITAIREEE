@@ -24,6 +24,7 @@
 <svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="gCoin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe98a"/><stop offset="1" stop-color="#ffb81c"/></linearGradient>
+    <radialGradient id="gPearl" cx=".36" cy=".3" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#fdeef6"/><stop offset=".75" stop-color="#e3c6ee"/><stop offset="1" stop-color="#b38fd0"/></radialGradient>
     <linearGradient id="gStar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff07a"/><stop offset="1" stop-color="#ffab1c"/></linearGradient>
   </defs>
   <!-- barvy karet -->
@@ -33,6 +34,8 @@
   <symbol id="s-s" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1.5C9 6 2.8 9.5 2.8 14c0 2.9 2.2 5 4.8 5 1.6 0 2.9-.7 3.6-1.8L10 22.5h4l-1.2-5.3c.7 1.1 2 1.8 3.6 1.8 2.6 0 4.8-2.1 4.8-5 0-4.5-6.2-8-9.2-12.5z"/></symbol>
   <!-- ikony -->
   <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12.6" r="11" fill="#d98a0b"/><circle cx="12" cy="11.4" r="10.4" fill="url(#gCoin)"/><circle cx="12" cy="11.4" r="7.4" fill="none" stroke="#e8a018" stroke-width="1.3"/><path d="M12 16 7.6 9.3c.6-2.4 8.2-2.4 8.8 0z" fill="#f0a915"/><path d="M12 15.5V8.2M12 15.5 9.6 8.6M12 15.5l2.4-6.9" stroke="#ffe48a" stroke-width=".9"/></symbol>
+  <symbol id="i-pearl" viewBox="0 0 24 24"><circle cx="12" cy="13" r="9.6" fill="#9b74bd"/><circle cx="12" cy="12.2" r="9.4" fill="url(#gPearl)"/><ellipse cx="8.4" cy="8.3" rx="3.1" ry="1.9" fill="#fff" transform="rotate(-35 8.4 8.3)"/><circle cx="15.8" cy="16" r="1.1" fill="#fff" opacity=".7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.2l2.95 6.1 6.65.85-4.9 4.6 1.25 6.6L12 17.1l-5.95 3.25 1.25-6.6-4.9-4.6 6.65-.85z" fill="url(#gStar)" stroke="#e48a00" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.3 9.6l2.1-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".8"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5.6" stroke-width="3"/><circle cx="12" cy="12" r="8.6" stroke-width="3.4" stroke-dasharray="3.4 3.35"/></g></symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11.5 12 4l8.5 7.5M6 10v9.5h4.5v-5h3v5H18V10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -83,7 +86,7 @@
     <div class="hud-top">
       <div class="hud-left">
         <button class="round-btn" data-act="title" aria-label="Menu"><svg class="ico"><use href="#i-menu"/></svg></button>
-        <div class="pill coin-pill"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span></div>
+        <button class="pill coin-pill" data-act="shop" aria-label="Obchod"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span><span class="pill-plus"><svg class="ico"><use href="#i-plus"/></svg></span></button>
       </div>
       <div class="scene-title" id="homeTitle"></div>
       <div class="hud-right">
@@ -94,6 +97,7 @@
     <div class="guide" id="homeGuide"><div class="guide-bubble" id="guideBubble"></div><div class="guide-pic" id="guidePic"></div></div>
     <button class="tasks-btn" id="tasksBtn"></button>
     <div class="home-mid">
+      <button class="mini-btn shop-btn" id="shopBtn" data-act="shop"><span class="emo">🛍️</span><span>Obchod</span><span class="shop-pearls"><svg class="ico"><use href="#i-pearl"/></svg><b class="pearls-val">0</b></span></button>
       <button class="mini-btn" data-act="map"><svg class="ico"><use href="#i-map"/></svg><span>Mapa</span></button>
       <button class="mini-btn" data-act="album"><svg class="ico"><use href="#i-album"/></svg><span>Album</span></button>
       <button class="mini-btn bonus-btn" id="bonusBtn"><svg class="ico"><use href="#i-coin"/></svg><span class="bn-t">0:00</span></button>
@@ -110,7 +114,7 @@
     <div class="hud-top map-hud">
       <div class="hud-left">
         <button class="round-btn" data-act="home" aria-label="Zpět"><svg class="ico"><use href="#i-back"/></svg></button>
-        <div class="pill coin-pill"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span></div>
+        <button class="pill coin-pill" data-act="shop" aria-label="Obchod"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span><span class="pill-plus"><svg class="ico"><use href="#i-plus"/></svg></span></button>
       </div>
       <div class="scene-title"><small>2 světy · 100 levelů</small>Mapa levelů</div>
       <div class="hud-right">
@@ -125,7 +129,7 @@
     <div class="g-top">
       <div class="hud-left">
         <button class="round-btn" id="gHome" aria-label="Domů"><svg class="ico"><use href="#i-home"/></svg></button>
-        <div class="pill coin-pill"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span></div>
+        <button class="pill coin-pill" data-act="shop" aria-label="Obchod"><svg class="pill-ico"><use href="#i-coin"/></svg><span class="coins-val">0</span><span class="pill-plus"><svg class="ico"><use href="#i-plus"/></svg></span></button>
       </div>
       <div class="g-mid">
         <div class="g-level" id="gLevel">Level 1</div>
@@ -171,6 +175,8 @@
 <script src="js/home.js"></script>
 <script src="js/map.js"></script>
 <script src="js/meta.js"></script>
+<script src="js/pay.js"></script>
+<script src="js/shop.js"></script>
 <script src="js/game.js"></script>
 <script src="js/main.js"></script>
 <script>

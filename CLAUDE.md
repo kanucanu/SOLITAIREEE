@@ -12,6 +12,8 @@ Spuštění: `python3 -m http.server 8000` v tomto adresáři → http://localho
 - `js/art2.js` – SVG tvorové a dekorace světa Hlubiny
 - `js/scenes.js` – 10 dekoračních scén po 6 úkolech (meta-vrstva)
 - `js/meta.js` – denní výzva, nálepky, úspěchy, obyvatelé scén, 3★ výzva
+- `js/shop.js` – Perlový obchod (perly, nabídky, kasička, rub karet a stůl)
+- `js/pay.js` – volitelné platby za perly (`CD.PayConfig`, výchozí vypnuto; test `?obchod=test`)
 - `js/storage.js` – ukládání do localStorage (klíč `koraloveSny.save.v1`)
 - `js/sound.js` – zvukové efekty přes Web Audio API
 - `js/music.js` – generovaná hudba na pozadí (téma podle obrazovky/kapitoly, intenzita podle série)

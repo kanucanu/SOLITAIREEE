@@ -9,6 +9,9 @@ Běží v prohlížeči na PC, iPadu (iOS 17) i telefonu. Je zdarma, bez reklam,
 - **Boss každých 10 levelů** (60, 70 … 100): žralok sní kartu z balíčku po každém 3. líznutí
 - **Denní výzva** s 7denním kalendářem odměn, **sbírka nálepek** (4 sady s odměnou), **16 úspěchů**
 - **Obyvatelé scén** – klepni na ně, promluví si a jednou denně dají dárek
+- **Perlový obchod a perly** 🦪 – vzácná měna (mušle, první 3 ★, bossové, úspěchy, denní výzva, truhly).
+  Obchod: denní dárek zdarma, nabídka dne, startovní balíček, perlová kasička, pomocníci, 6 rubů karet a 5 hracích stolů,
+  výměna perel za mince. Volitelně nákup perel za peníze (viz `js/pay.js`, ve výchozím stavu vypnuto)
 - **3★ Výzva:** dohrané levely znovu s omezeným počtem tahů (tlačítko „Hrát výzvu" v okně levelu na mapě)
 - 1–3 hvězdičky za level podle zbylých karet v balíčku, mince za série
 - Zámky a klíče, bonusové mince na kartách, série s bonusy
@@ -87,6 +90,8 @@ js/engine.js            herní logika (generátor řešitelných rozdání, tahy
 js/art.js, art2.js      SVG grafika (art2 = tvorové a dekorace Hlubin)
 js/scenes.js            10 dekoračních scén s úkoly
 js/meta.js              denní výzva, nálepky, úspěchy, obyvatelé scén, 3★ výzva
+js/shop.js              Perlový obchod (perly, nabídky, kasička, vzhled)
+js/pay.js               napojení na platby (Stripe Payment Links / testovací režim ?obchod=test)
 js/storage.js           ukládání do localStorage
 js/sound.js             zvukové efekty (Web Audio API)
 js/music.js             hudba na pozadí – 12 témat, plánovač not, syntetické nástroje
@@ -102,3 +107,8 @@ Karta na nižším řádku zakrývá překrývající se kartu nad sebou. U leve
 a `boss: true`. Po úpravě spusť `node tests/engine.test.js`.
 
 Po změně souborů na serveru zvyš verzi `CACHE` v `sw.js`, ať se offline kopie obnoví.
+
+### Platby za perly (volitelné)
+Ve výchozím stavu je hra celá zdarma a balíčky za peníze se v obchodě nezobrazují. Zapnutí přes Stripe Payment Links
+(bez serveru) je popsané v hlavičce `js/pay.js`. Před každou platbou je rodičovská pojistka (příklad na násobení).
+Vyzkoušení bez placení: otevři hru s `?obchod=test` (vypnutí `?obchod=off`).

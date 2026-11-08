@@ -31,6 +31,12 @@
       chal: {},                          // splněné 3★ výzvy { "12": true }
       ach: {},                           // získané úspěchy { id: true }
       res: {},                           // obyvatelé scén: den posledního dárku { "0-1": 20400 }
+      pearls: 15,                        // perly – vzácná měna obchodu
+      bank: 0,                           // mince v perlové kasičce
+      owned: { back: ['classic'], table: ['reef'] },   // koupený vzhled
+      look: { back: 'classic', table: 'reef' },        // používaný vzhled
+      shop: { gift: -1, deal: -1, starter: false },    // den denního dárku / nabídky, startovní balíček
+      purchases: [],                     // id plateb (aby se nákup nepřipsal dvakrát)
     };
   }
 
@@ -39,7 +45,7 @@
     if (!src || typeof src !== 'object') return d;
     for (const k of Object.keys(d)) {
       if (!(k in src)) continue;
-      if (['boosters', 'settings', 'stats', 'daily'].includes(k) && src[k] && typeof src[k] === 'object') d[k] = Object.assign(d[k], src[k]);
+      if (['boosters', 'settings', 'stats', 'daily', 'owned', 'look', 'shop'].includes(k) && src[k] && typeof src[k] === 'object') d[k] = Object.assign(d[k], src[k]);
       else d[k] = src[k];
     }
     // starší uložené hry měly jen 5 scén – doplnit na 10
@@ -48,6 +54,15 @@
     d.chests = pad(d.chests, false).map(Boolean);
     ['stickers', 'sets', 'chal', 'ach', 'res'].forEach(k => { if (!d[k] || typeof d[k] !== 'object' || Array.isArray(d[k])) d[k] = {}; });
     if (!Array.isArray(d.introSeen)) d.introSeen = [];
+    if (!Array.isArray(d.purchases)) d.purchases = [];
+    ['back', 'table'].forEach(k => {
+      const base = k === 'back' ? 'classic' : 'reef';
+      if (!Array.isArray(d.owned[k])) d.owned[k] = [];
+      if (!d.owned[k].includes(base)) d.owned[k].unshift(base);
+      if (!d.owned[k].includes(d.look[k])) d.look[k] = base;
+    });
+    d.pearls = Math.max(0, Math.floor(+d.pearls || 0));
+    d.bank = Math.max(0, Math.floor(+d.bank || 0));
     d.coins = Math.max(0, Math.floor(+d.coins || 0));
     d.stars = Math.max(0, Math.floor(+d.stars || 0));
     d.unlocked = Math.min(101, Math.max(1, Math.floor(+d.unlocked || 1)));

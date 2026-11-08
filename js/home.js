@@ -83,6 +83,7 @@
       const lvl = this.nextLevel();
       $('#playBtn').innerHTML = lvl > CD.Levels.COUNT ? `<span>Vše</span><b>hotovo</b>` : `<span>${d.run && d.run.level === lvl ? 'Pokračovat' : 'Level'}</span><b>${lvl}</b>`;
       $('#dailyBtn').classList.toggle('ready', !CD.Meta.dailyDone());
+      $('#shopBtn').classList.toggle('ready', CD.Shop.badge());
       $('#dailyBtn').innerHTML = `<span class="emo">📅</span><span>Výzva</span>${CD.Meta.dailyDone() ? '' : '<span class="badge-red">!</span>'}`;
       this.updateBonus();
     },
@@ -191,11 +192,12 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
   <div class="rw">${CD.UI.icon('wild')}<b>+${ch.wild}</b></div>
   <div class="rw">${CD.UI.icon('undo')}<b>+${ch.undo}</b></div>
   <div class="rw">${CD.UI.icon('shuffle')}<b>+${ch.shuffle}</b></div>
+  <div class="rw">${CD.UI.icon('pearl')}<b>+3</b></div>
   <div class="rw"><span class="stk">📒</span><b>+2</b></div>
 </div>
 <div class="m-btns"><button class="btn btn-green" data-ok>Vyzvednout</button></div>` });
       m.el.querySelector('[data-ok]').addEventListener('click', () => {
-        d.coins += ch.coins;
+        d.coins += ch.coins; d.pearls += 3;
         d.boosters.wild += ch.wild; d.boosters.undo += ch.undo; d.boosters.shuffle += ch.shuffle;
         d.chests[idx] = true;
         const s1 = CD.Meta.giveSticker(), s2 = CD.Meta.giveSticker();
