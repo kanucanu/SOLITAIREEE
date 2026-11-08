@@ -28,18 +28,20 @@
   const calIcon = r => r.sticker ? '🎁' : r.wild ? '✨' : r.shuffle ? '🔀' : r.undo ? '↩️' : '🪙';
   const calText = r => [r.coins && `${r.coins} mincí`, r.wild && `${r.wild}× žolík`, r.undo && `${r.undo}× zpět`, r.shuffle && `${r.shuffle}× zamíchat`, r.sticker && `${r.sticker} nálepky`, r.pearls && `${r.pearls} perel`].filter(Boolean).join(' + ');
 
-  /* ---------- nálepky (24 mořských tvorů ve 4 sadách) ---------- */
+  /* ---------- nálepky (30 mořských tvorů v 5 sadách) ---------- */
   const SETS = [
     { name: 'Korálový útes', color: '#ff9fb8', reward: { coins: 300, wild: 1, pearls: 5 } },
     { name: 'Tvorové hlubin', color: '#9a8cff', reward: { coins: 400, undo: 2, pearls: 5 } },
     { name: 'Ledové moře', color: '#8fd8ff', reward: { coins: 400, shuffle: 2, pearls: 5 } },
     { name: 'Poklady moře', color: '#ffd166', reward: { coins: 600, wild: 2, pearls: 10 } },
+    { name: 'Pobřeží', color: '#ffb27a', reward: { coins: 600, shuffle: 2, pearls: 10 } },
   ];
   const STICKERS = [
     ['🐠', 'Klauní rybka'], ['🐡', 'Čtverzubec'], ['🐢', 'Kareta'], ['🪸', 'Korál'], ['🦐', 'Kreveta'], ['🐟', 'Modrá rybka'],
     ['🐙', 'Chobotnice'], ['🦑', 'Krakatice'], ['🪼', 'Medúza'], ['🦈', 'Žralok'], ['🐋', 'Plejtvák'], ['🦞', 'Humr'],
     ['🦭', 'Tuleň'], ['🐧', 'Tučňák'], ['🐳', 'Velryba'], ['🦦', 'Vydra'], ['🐬', 'Delfín'], ['🦀', 'Krab'],
     ['🐚', 'Mušle'], ['🦪', 'Perlorodka'], ['💎', 'Drahokam'], ['👑', 'Koruna'], ['⚓', 'Kotva'], ['🔱', 'Trojzubec'],
+    ['🐦', 'Racek'], ['🐧', 'Papuchalk'], ['🗼', 'Maják'], ['⛵', 'Plachetnice'], ['🌴', 'Palma'], ['🐙', 'Kraken'],
   ].map(([e, name], i) => ({ id: i, e, name, set: Math.floor(i / 6) }));
 
   /* ---------- úspěchy ---------- */
@@ -54,14 +56,18 @@
     { id: 'str10', ico: '🌊', name: 'Vlna', desc: 'Sérii 10 karet', goal: 10, val: d => d.stats.bestStreak, coins: 100 },
     { id: 'str20', ico: '🌀', name: 'Tsunami', desc: 'Sérii 20 karet', goal: 20, val: d => d.stats.bestStreak, coins: 300 },
     { id: 'sc5', ico: '🐢', name: 'Stavitel útesu', desc: 'Oprav 5 scén', goal: 5, val: d => d.chests.filter(Boolean).length, coins: 400 },
-    { id: 'sc10', ico: '🏰', name: 'Vládce hlubin', desc: 'Oprav všech 10 scén', goal: 10, val: d => d.chests.filter(Boolean).length, coins: 1000 },
+    { id: 'sc10', ico: '🏰', name: 'Vládce hlubin', desc: 'Oprav 10 scén', goal: 10, val: d => d.chests.filter(Boolean).length, coins: 1000 },
     { id: 'w1', ico: '🐠', name: 'Korálové sny', desc: 'Dohraj level 50', goal: 50, val: d => d.unlocked - 1, coins: 300 },
     { id: 'w2', ico: '🦑', name: 'Hlubiny', desc: 'Dohraj level 100', goal: 100, val: d => d.unlocked - 1, coins: 1000 },
-    { id: 'boss', ico: '🦈', name: 'Krotitel žraloků', desc: 'Poraz všech 5 bossů', goal: 5, val: d => d.stats.boss || 0, coins: 500 },
+    { id: 'lh', ico: '🗼', name: 'Strážce majáku', desc: 'Oprav scénu Zhasnutý maják', goal: 1, val: d => d.chests[10] ? 1 : 0, coins: 400 },
+    { id: 'sc15', ico: '🏝️', name: 'Doma na ostrově', desc: 'Oprav všech 15 scén', goal: 15, val: d => d.chests.filter(Boolean).length, coins: 1500 },
+    { id: 'w3', ico: '⛈️', name: 'Bouřlivá hladina', desc: 'Dohraj level 150', goal: 150, val: d => d.unlocked - 1, coins: 1500 },
+    { id: 'kraken', ico: '🐙', name: 'Krotitel Krakena', desc: 'Zažeň Krakena v 5 levelech', goal: 5, val: d => d.stats.kraken || 0, coins: 600 },
+    { id: 'boss', ico: '🦈', name: 'Krotitel žraloků', desc: 'Poraz žraloka v 5 levelech', goal: 5, val: d => d.stats.boss || 0, coins: 500 },
     { id: 'daily7', ico: '📅', name: 'Věrný kamarád', desc: 'Splň 7 denních výzev', goal: 7, val: d => d.stats.daily || 0, coins: 300 },
     { id: 'chal10', ico: '🏆', name: 'Mistr výzev', desc: 'Splň 10 výzev na tahy', goal: 10, val: d => d.stats.chal || 0, coins: 300 },
     { id: 'obst', ico: '🧽', name: 'Čistič moře', desc: 'Odstraň 100 překážek', goal: 100, val: d => d.stats.obst || 0, coins: 300 },
-    { id: 'stk', ico: '📒', name: 'Kompletní sbírka', desc: 'Sesbírej všech 24 nálepek', goal: 24, val: uniq, coins: 1000 },
+    { id: 'stk', ico: '📒', name: 'Kompletní sbírka', desc: 'Sesbírej všech 30 nálepek', goal: 30, val: uniq, coins: 1000 },
   ];
 
   const achPearls = a => Math.max(2, Math.round(a.coins / 100));
@@ -98,6 +104,22 @@
     [{ at: 2, name: 'Medúza Noční', art: u => CD.Art.jelly(u, 1350, 470, 0.7, '#7fe7ff', -1), lines: ['V hlubinách je klid a ticho.', 'Já se žraloka nebojím!'] },
      { at: 4, name: 'Chobotnice Olga', art: () => CD.Art.octopus(300, 470, 0.55, '#b06ad6', '#e0a8ff', -2), lines: ['Žralok je ve skutečnosti hodný, jen měl hlad.', 'Vařím mu chaluhovou polévku.'] },
      { at: 6, name: 'Žralok Žrout', art: () => CD.Art.shark(1200, 600, 0.5, true, true, -1), lines: ['Promiň, že jsem ti jedl karty. Už nebudu!', 'Jsme kamarádi? Mňam… teda, ahoj!'] }],
+    /* svět 3 – Bouřlivá hladina */
+    [{ at: 2, name: 'Racek Kvak', art: () => CD.Art.gull(1250, 432, 0.8, true, 0, false), lines: ['Kvak! Maják zase svítí, hurá!', 'Z výšky vidím každou kartu.'] },
+     { at: 4, name: 'Kocour Plavčík', art: () => CD.Art.cat(860, 800, 0.7, '#ffb36b', -1), lines: ['Mňau. Hlídám majákovníkovi sardinky.', 'Na schodech se nejlíp spí.'] },
+     { at: 6, name: 'Tuleň Šplouch', art: () => CD.Art.seal(380, 640, 0.55, false, -2), lines: ['Plavu za světlem majáku!', 'Příliv zaplaví kraje – počkej, až opadne.'] }],
+    [{ at: 2, name: 'Poustevníček Ťuk', art: () => CD.Art.hermit(1250, 840, 0.7, '#ff8a5c', '#ffd8a8', 0), lines: ['Tuk ťuk! Nová ulita mi sedí jako ulitá.', 'Řetězové karty se hrají v páru.'] },
+     { at: 4, name: 'Papuchalk Pepík', art: () => CD.Art.puffin(1480, 700, 0.7, true, -1), lines: ['Mám nejbarevnější zobák v přístavu!', 'Ryby z tržiště jsou dnes čerstvé.'] },
+     { at: 6, name: 'Vydra Plavka', art: () => CD.Art.otter(820, 600, 0.7, -2), lines: ['Spím na zádech a držím se za tlapky.', 'V láhvi bývá vzkaz – a někdy i dárek!'] }],
+    [{ at: 2, name: 'Krab Hromík', art: () => CD.Art.crab(1000, 850, 0.6, '#e8553a', 0), lines: ['Hrom a blesk! Ale já se nebojím.', 'Karta s bleskem pomáhá – smete jinou kartu!'] },
+     { at: 4, name: 'Racek Bouřňák', art: () => CD.Art.gull(1440, 668, 0.75, false, -1, false), lines: ['V bouřce létám nejrychleji!', 'Vír občas karty prohodí, dávej pozor.'] },
+     { at: 6, name: 'Delfín Šplíchal', art: () => CD.Art.fish(700, 600, 1.4, '#9fb8d8', '#5a7fa8', false, -2, 'swim'), lines: ['Hop! Skáču i přes bouřkové vlny!', 'Po bouřce bývá nejkrásnější duha.'] }],
+    [{ at: 2, name: 'Poustevník Chňapík', art: () => CD.Art.hermit(300, 840, 0.65, '#e86a8a', '#ffe0c0', 0), lines: ['Při odlivu sbírám poklady.', 'Za soumraku je moře růžové.'] },
+     { at: 4, name: 'Vydra Lilka', art: () => CD.Art.otter(1150, 560, 0.65, -1), lines: ['Při přílivu se houpám na vlnách.', 'Příliv přichází a odchází – počítej tahy.'] },
+     { at: 6, name: 'Hvězdice Večernice', art: () => CD.Art.starfish(1430, 850, 0.9, '#ff9a6b', 15), lines: ['Až zapadne slunce, budu svítit.', 'Ostrov je při odlivu dvakrát větší!'] }],
+    [{ at: 2, name: 'Želvička Bětka', art: () => CD.Art.babyTurtle(470, 800, 0.85, true, 0), lines: ['Poprvé jsem doběhla až k moři!', 'Tóňa je můj vzor.'] },
+     { at: 4, name: 'Kocour Plavčík', art: () => CD.Art.cat(1220, 790, 0.65, '#ffb36b', -1), lines: ['Připlul jsem sem na loďce z majáku.', 'Ostrovní ryby chutnají po kokosu.'] },
+     { at: 6, name: 'Papuchalk Pepík', art: () => CD.Art.puffin(230, 712, 0.7, false, -2), lines: ['Přiletěl jsem z přístavu na oslavu!', 'Kraken je teď nejhodnější soused na světě.'] }],
   ];
 
   const M = {
@@ -169,7 +191,7 @@ ${!done && d.daily.last >= 0 && d.daily.last < today() - 1 ? '<p class="m-small"
         return `<div class="stk-set"><div class="stk-head" style="--sc:${set.color}"><b>${set.name}</b><span>${have}/6 ${d.sets[si] ? '✅' : `· odměna ${set.reward.coins} ${CD.UI.icon('coin')} + ${set.reward.pearls} ${CD.UI.icon('pearl')}`}</span></div>
 <div class="stk-grid">${items.map(s => d.stickers[s.id] ? `<div class="stk-card" style="--sc:${set.color}"><span class="stk">${s.e}</span><small>${s.name}</small>${d.stickers[s.id] > 1 ? `<i>×${d.stickers[s.id]}</i>` : ''}</div>` : '<div class="stk-card empty"><span class="stk">?</span><small>???</small></div>').join('')}</div></div>`;
       }).join('');
-      CD.UI.modal({ title: 'Sbírka tvorů', cls: 'm-wide m-stickers', html: `<p class="m-text">Nálepky padají z výher (hlavně za 3 ★), z bossů, denních výzev a truhel. Kompletní sada = odměna!</p>${html}<p class="m-small">Máš ${uniq(d)} z 24 nálepek.</p>` });
+      CD.UI.modal({ title: 'Sbírka tvorů', cls: 'm-wide m-stickers', html: `<p class="m-text">Nálepky padají z výher (hlavně za 3 ★), z bossů, denních výzev a truhel. Kompletní sada = odměna!</p>${html}<p class="m-small">Máš ${uniq(d)} z ${STICKERS.length} nálepek.</p>` });
     },
 
     /* ===== 3★ výzvy ===== */

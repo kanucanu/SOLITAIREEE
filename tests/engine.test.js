@@ -1,4 +1,4 @@
-// Test herní logiky: validita rozložení, řešitelnost všech 100 levelů (i s překážkami a žralokem) a odhad obtížnosti.
+// Test herní logiky: validita rozložení, řešitelnost všech 150 levelů (i s překážkami, žralokem a Krakenem), denní výzvy a odhad obtížnosti.
 // Spuštění: node tests/engine.test.js
 const path = require('path').join(__dirname, '..', 'js') + '/';
 require(path+'levels.js'); require(path+'engine.js');

@@ -142,6 +142,7 @@
   <div class="help-row"><div class="help-ico">🔒</div><p>Karta se <b>zámkem</b> se uvolní, až odehraješ kartu s <b>klíčem</b> stejné barvy.</p></div>
   <div class="help-row"><div class="help-ico">⭐</div><p>Čím víc karet ti na konci zůstane v balíčku, tím víc <b>hvězdiček</b> (1–3). Hvězdičkami plníš úkoly ve scénách a opravuješ podmořské království.</p></div>
   <div class="help-row"><div class="help-ico">✨</div><p><b>Pomocníci:</b> Žolík (pasuje na cokoliv), Zpět (vrátí tah), Zamíchat (přeskládá karty na stole), Nápověda (zdarma). Když dojdou karty, můžeš si za mince dokoupit +5 karet.</p></div>
+  <div class="help-row"><div class="help-ico">🗺️</div><p><b>Tři světy:</b> Korálové sny (1–50), Hlubiny (51–100) s inkoustem, ledem, bublinami a žralokem a Bouřlivá hladina (101–150) s přílivem, řetězy, lahvemi, blesky, víry a Krakenem. Nové překážky ti hra vysvětlí, když se poprvé objeví.</p></div>
   <div class="help-row"><div class="help-ico">🦪</div><p><b>Perly</b> jsou vzácná měna. Najdeš je v mušlích, za první 3 hvězdy, za bosse, úspěchy a denní výzvy. V <b>Obchodě</b> za ně koupíš pomocníky, nový vzhled karet a stolu nebo rozbiješ kasičku plnou mincí.</p></div>
   <div class="help-row"><div class="help-ico">💾</div><p>Postup se <b>ukládá automaticky</b> v tomto prohlížeči – i rozehraný level.</p></div>
 </div><div class="m-btns"><button class="btn btn-green" data-close>Rozumím</button></div>` })

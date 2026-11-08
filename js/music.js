@@ -149,8 +149,76 @@
       perc: [{ i: 'kick', p: 'x...x...', lvl: 0, v: 0.15 }, { i: 'timp', p: 'x.......', lvl: 0, v: 0.08 }, { i: 'shaker', p: 'x.x.x.x.', lvl: 1, v: 0.025 }],
       fx: 'creak',
     },
+    /* ----- svět 3: Bouřlivá hladina ----- */
+    // 11. Zhasnutý maják – klidná noční píseň, harfa a hrací skříňka (F dur)
+    lighthouse: {
+      key: 65, mode: 'major', step: 0.3, steps: 8, cutoff: 4600, rev: 0.5,
+      chords: [[0, 4, 7], [-5, -1, 2], [-3, 0, 4], [-7, -3, 0]],
+      bass: 'R...5...', arp: [0, 1, 2, 4, 2, 1, 2, 1], arpInst: 'harp', arpVol: 0.045, pad: 0.02,
+      melInst: 'box', melOct: 12, melVol: 0.07,
+      mel: ['2 - 4 - 5 - 4 -', '2 - 1 - 0 - . .', '-1 - 0 - 2 - 4 -', '5 - - - - - . .',
+            '7 - 6 - 5 - 4 -', '5 - 4 - 2 - . .', '1 - 2 - 4 - 1 -', '0 - - - - - . .'],
+      perc: [{ i: 'shaker', p: '....x...', lvl: 1, v: 0.02 }, { i: 'kick', p: 'x...x...', lvl: 2, v: 0.12 }],
+      fx: 'shimmer',
+    },
+    // 12. Přístav racků – veselá námořnická písnička v 6/8, harmonika (D dur)
+    harbor: {
+      key: 62, mode: 'major', step: 0.19, steps: 6, cutoff: 4400, rev: 0.25,
+      chords: [[0, 4, 7], [5, 9, 12], [0, 4, 7], [7, 11, 14], [0, 4, 7], [5, 9, 12], [7, 11, 14], [0, 4, 7]],
+      bass: 'R..5..', stab: '.xx.xx', arp: null, arpInst: 'accordion', arpVol: 0.03, pad: 0,
+      melInst: 'accordion', melOct: 12, melVol: 0.065,
+      mel: ['0 - 2 4 - 4', '5 - 4 3 - 3', '4 - 2 0 - 2', '4 - - 1 - -',
+            '0 - 2 4 - 7', '7 - 5 4 - 3', '2 - 4 3 - 1', '0 - - - - .'],
+      perc: [{ i: 'kick', p: 'x..x..', lvl: 0, v: 0.12 }, { i: 'shaker', p: '.xx.xx', lvl: 1, v: 0.025 }, { i: 'timp', p: 'x.....', lvl: 2, v: 0.07 }],
+      fx: 'creak',
+    },
+    // 13. Bouřkový útes – rychlé dramatické ostinato, d moll, bubny a žestě
+    storm: {
+      key: 62, mode: 'minor', step: 0.21, steps: 8, cutoff: 3400, rev: 0.4,
+      chords: [[0, 3, 7], [-2, 2, 5], [-4, 0, 3], [-5, -1, 2]],
+      bass: 'R.R.5.R.', stab: '...x...x', arp: [0, 2, 1, 2, 0, 2, 1, 2], arpInst: 'harp', arpVol: 0.035, pad: 0.03,
+      melInst: 'brass', melOct: 0, melVol: 0.055,
+      mel: ['4 - - 3 4 - 7 -', '6 - 5 - 4 - . .', '3 - - 2 3 - 6 -', '4 - - - 6# - . .',
+            '7 - - 6 7 - 9 -', '8 - 7 - 6 - 4 -', '5 - 4 - 3 - 1 -', '0 - - - - - . .'],
+      perc: [{ i: 'timp', p: 'x.......', lvl: 0, v: 0.1 }, { i: 'kick', p: 'x..x..x.', lvl: 1, v: 0.13 }, { i: 'shaker', p: 'xxxxxxxx', lvl: 2, v: 0.02 }],
+      fx: 'drips',
+    },
+    // 14. Ostrov přílivu – houpavé vlny, marimba a flétna (E dur)
+    tidal: {
+      key: 64, mode: 'major', step: 0.29, steps: 6, cutoff: 5000, rev: 0.4,
+      chords: [[0, 4, 7], [-3, 0, 4], [5, 9, 12], [7, 11, 14]],
+      bass: 'R..5..', arp: [0, 1, 2, 3, 2, 1], arpInst: 'marimba', arpVol: 0.05, pad: 0.015,
+      melInst: 'flute', melOct: 12, melVol: 0.07,
+      mel: ['4 - - 5 4 2', '0 - - - . .', '1 - 2 3 - 5', '4 - - - . .',
+            '7 - - 6 5 4', '5 - 4 2 - 0', '1 - 2 1 - -1', '0 - - - . .'],
+      perc: [{ i: 'shaker', p: '..x..x', lvl: 0, v: 0.02 }, { i: 'kick', p: 'x.....', lvl: 1, v: 0.12 }, { i: 'shaker', p: 'xxxxxx', lvl: 2, v: 0.018 }],
+      fx: 'bubbles',
+    },
+    // 15. Tónin ostrov – slavnostní letní calypso, steel drum (G dur)
+    island: {
+      key: 67, mode: 'major', step: 0.25, steps: 8, cutoff: 5400, rev: 0.25,
+      chords: [[0, 4, 7], [5, 9, 12], [7, 11, 14], [0, 4, 7]],
+      bass: 'R.5.R85.', arp: [null, 1, 2, null, 1, 2, 3, 2], arpInst: 'marimba', arpVol: 0.055, pad: 0,
+      melInst: 'steel', melOct: 12, melVol: 0.085,
+      mel: ['0 2 4 - 4 - 5 4', '3 - 5 - 4 - . .', '4 5 7 - 7 - 8 7', '6 - - - 4 - . .',
+            '0 2 4 - 4 - 5 7', '9 - 8 - 7 - 5 -', '4 - 6 - 5 - 3 -', '7 - - - . . . .'],
+      perc: [{ i: 'shaker', p: '.x.x.x.x', lvl: 0, v: 0.025 }, { i: 'kick', p: 'x..x..x.', lvl: 1, v: 0.15 }, { i: 'shaker', p: 'xxxxxxxx', lvl: 2, v: 0.02 }],
+      fx: 'bubbles',
+    },
+    // boss Kraken – temné, valivé ostinato (b moll harmonická)
+    kraken: {
+      key: 58, mode: 'harm', step: 0.22, steps: 8, cutoff: 3000, rev: 0.45,
+      chords: [[0, 3, 7], [-4, 0, 3], [0, 3, 7], [-1, 2, 5]],
+      bass: 'RR.RR.5.', stab: '..x...x.', arp: [0, 1, 2, 1, 0, 1, 2, 1], arpInst: 'harp', arpVol: 0.03, pad: 0.035,
+      melInst: 'brass', melOct: 0, melVol: 0.06,
+      mel: ['0 - - - 2 - 3 -', '4 - 3 - 2 - . .', '0 - - - 2 - 3 -', '6# - - - 4 - . .',
+            '7 - - 6 5 - 4 -', '3 - 2 - 1 - . .', '2 - 3 - 4 - 6# -', '7 - - - . . . .'],
+      perc: [{ i: 'timp', p: 'x...x...', lvl: 0, v: 0.12 }, { i: 'kick', p: 'x.x...x.', lvl: 1, v: 0.14 }, { i: 'shaker', p: 'x.x.x.x.', lvl: 2, v: 0.025 }],
+      fx: 'drips',
+    },
   };
-  const CHAPTER_THEMES = ['reef', 'cave', 'ship', 'garden', 'palace', 'ink', 'ice', 'vents', 'temple', 'abyss'];
+  const CHAPTER_THEMES = ['reef', 'cave', 'ship', 'garden', 'palace', 'ink', 'ice', 'vents', 'temple', 'abyss',
+    'lighthouse', 'harbor', 'storm', 'tidal', 'island'];
   const FORM_BARS = 16;          // 4 takty úvod, 8 taktů melodie, 4 takty mezihra
 
   function parseMel(theme) {
@@ -207,7 +275,7 @@
     themeFor(screen) {
       const d = CD.Store && CD.Store.data;
       if (!d) return 'title';
-      if (screen === 'game' && CD.Game && CD.Game.def) return CD.Game.def.boss ? 'boss' : CHAPTER_THEMES[CD.Game.def.chapter] || 'reef';
+      if (screen === 'game' && CD.Game && CD.Game.def) return CD.Game.def.boss === 'kraken' ? 'kraken' : CD.Game.def.boss ? 'boss' : CHAPTER_THEMES[CD.Game.def.chapter] || 'reef';
       if (screen === 'home') return CHAPTER_THEMES[d.scene] || 'reef';
       if (screen === 'map') return CHAPTER_THEMES[Math.floor((Math.min(d.unlocked, CD.Levels.COUNT) - 1) / 10)] || 'reef';
       return 'title';

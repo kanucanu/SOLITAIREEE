@@ -6,7 +6,7 @@
   'use strict';
   const CD = root.CD = root.CD || {};
   const KEY = 'koraloveSny.save.v1';
-  const SCENES = 10;                   // počet dekoračních scén (2 světy × 5)
+  const SCENES = 15;                   // počet dekoračních scén (3 světy × 5)
 
   function defaults() {
     return {
@@ -14,7 +14,7 @@
       coins: 500,                        // mince
       stars: 0,                          // hvězdičky k utrácení za úkoly ve scénách
       best: {},                          // nejlepší počet hvězd v levelu { "1": 3 }
-      unlocked: 1,                       // nejvyšší odemčený level (101 = vše dohráno)
+      unlocked: 1,                       // nejvyšší odemčený level (151 = vše dohráno)
       scene: 0,                          // index aktuální scény
       tasks: new Array(SCENES).fill(0),  // počet splněných úkolů v každé scéně
       chests: new Array(SCENES).fill(false),
@@ -48,7 +48,7 @@
       if (['boosters', 'settings', 'stats', 'daily', 'owned', 'look', 'shop'].includes(k) && src[k] && typeof src[k] === 'object') d[k] = Object.assign(d[k], src[k]);
       else d[k] = src[k];
     }
-    // starší uložené hry měly jen 5 scén – doplnit na 10
+    // starší uložené hry měly méně scén – doplnit na 15
     const pad = (arr, v) => { const a = Array.isArray(arr) ? arr.slice(0, SCENES) : []; while (a.length < SCENES) a.push(v); return a; };
     d.tasks = pad(d.tasks, 0).map(n => Math.max(0, Math.min(6, n | 0)));
     d.chests = pad(d.chests, false).map(Boolean);
@@ -65,9 +65,9 @@
     d.bank = Math.max(0, Math.floor(+d.bank || 0));
     d.coins = Math.max(0, Math.floor(+d.coins || 0));
     d.stars = Math.max(0, Math.floor(+d.stars || 0));
-    d.unlocked = Math.min(101, Math.max(1, Math.floor(+d.unlocked || 1)));
+    d.unlocked = Math.min(151, Math.max(1, Math.floor(+d.unlocked || 1)));
     d.scene = Math.max(0, Math.min(SCENES - 1, d.scene | 0));
-    while (d.scene < SCENES - 1 && d.chests[d.scene]) d.scene++;   // kdo dokončil svět 1, pokračuje scénou 6
+    while (d.scene < SCENES - 1 && d.chests[d.scene]) d.scene++;   // kdo dokončil svět, pokračuje první scénou dalšího
     return d;
   }
 

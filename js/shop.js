@@ -23,6 +23,7 @@
     { id: 'star', name: 'Hvězdice', cost: 25 },
     { id: 'jelly', name: 'Medúza', cost: 30 },
     { id: 'deep', name: 'Hlubiny', cost: 40 },
+    { id: 'lighthouse', name: 'Maják', cost: 45 },
     { id: 'gold', name: 'Zlatá perla', cost: 60 },
   ];
   const TABLES = [
@@ -30,6 +31,7 @@
     { id: 'lagoon', name: 'Laguna', cost: 25 },
     { id: 'kelp', name: 'Chaluhový les', cost: 30 },
     { id: 'sunset', name: 'Západ slunce', cost: 40 },
+    { id: 'beach', name: 'Pláž při západu', cost: 45 },
     { id: 'night', name: 'Noční moře', cost: 50 },
   ];
   const DEALS = [

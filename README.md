@@ -3,24 +3,31 @@
 Webová hra pro jednoho hráče: **TriPeaks solitaire** + **opravování podmořského království**.
 Běží v prohlížeči na PC, iPadu (iOS 17) i telefonu. Je zdarma, bez reklam, bez internetu po prvním načtení.
 
-- **100 levelů ve 2 světech** (31 tvarů rozložení karet): Korálová říše (1–50) a temnější **Hlubiny** (51–100) s těsnějším balíčkem
+- **150 levelů ve 3 světech** (41 tvarů rozložení karet): Korálová říše (1–50), temnější **Hlubiny** (51–100) s těsnějším balíčkem
+  a **Bouřlivá hladina** (101–150) nad mořem – maják, přístav, bouřka, příliv a Tónin ostrov
 - **Překážky v Hlubinách:** 🦑 inkoust (karta skrytá, dokud nezahraješ sousední), 🧊 led (2 zásahy sousedy),
   🫧 bublina (uvolní ji 2 karty dané barvy ♥♦ / ♠♣), 🐚 perlová mušle (otevře se sérií 5, perla = +40 mincí)
 - **Boss každých 10 levelů** (60, 70 … 100): žralok sní kartu z balíčku po každém 3. líznutí
-- **Denní výzva** s 7denním kalendářem odměn, **sbírka nálepek** (4 sady s odměnou), **16 úspěchů**
+- **Překážky na Bouřlivé hladině:** 🌊 příliv (spodní karty jsou v některých tazích pod vodou), ⛓️ kotva s řetězem
+  (dvojice karet se musí zahrát hned po sobě), 🍾 láhev se vzkazem (dárek: žolík, zpět, zamíchat nebo perla),
+  ⚡ blesk (otočí karty kolem sebe), 🌀 vír (při líznutí prohodí dvě karty na stole)
+- **Boss Kraken** (110, 120 … 150): každé 4 tahy chytí chapadlem kartu, pustí ji zahraná sousední karta; zažene se sériemi 5, 10 a 15
+- **Denní výzva** s 7denním kalendářem odměn, **sbírka nálepek** (30 nálepek v 5 sadách s odměnou), **20 úspěchů**
 - **Obyvatelé scén** – klepni na ně, promluví si a jednou denně dají dárek
 - **Perlový obchod a perly** 🦪 – vzácná měna (mušle, první 3 ★, bossové, úspěchy, denní výzva, truhly).
-  Obchod: denní dárek zdarma, nabídka dne, startovní balíček, perlová kasička, pomocníci, 6 rubů karet a 5 hracích stolů,
+  Obchod: denní dárek zdarma, nabídka dne, startovní balíček, perlová kasička, pomocníci, 7 rubů karet a 6 hracích stolů,
   výměna perel za mince. Volitelně nákup perel za peníze (viz `js/pay.js`, ve výchozím stavu vypnuto)
 - **3★ Výzva:** dohrané levely znovu s omezeným počtem tahů (tlačítko „Hrát výzvu" v okně levelu na mapě)
 - 1–3 hvězdičky za level podle zbylých karet v balíčku, mince za série
 - Zámky a klíče, bonusové mince na kartách, série s bonusy
 - Pomocníci: **Žolík**, **Zpět**, **Zamíchat**, **Nápověda**, dokoupení **+5 karet**
-- 10 scén × 6 úkolů (Korálový útes → … → Palác vln, v Hlubinách Inkoustový les → Ledová jeskyně → Bublinková pole → Perlový chrám → Trůn hlubin)
+- 15 scén × 6 úkolů (Korálový útes → … → Palác vln, v Hlubinách Inkoustový les → … → Trůn hlubin,
+  na hladině Zhasnutý maják → Přístav racků → Bouřkový útes → Ostrov přílivu → Tónin ostrov)
 - Průvodkyně želvička Tóňa, truhly s odměnami, bonus mincí každých 20 minut, album scén
 - Automatické ukládání do `localStorage` – i rozehraného levelu včetně historie tahů
 - **Hudba na pozadí** podle prostředí – každá kapitola má vlastní skladbu (calypso na útesu, tajemné zvonky v jeskyni,
-  námořnická píseň u lodi, valčík v zahradě, fanfára v paláci, v Hlubinách temnější témata a vlastní hudba pro bosse).
+  námořnická píseň u lodi, valčík v zahradě, fanfára v paláci, v Hlubinách temnější témata, na hladině majákové téma, přístavní šestiosminová píseň, bouře,
+  příliv a ostrovní slavnost; vlastní hudba pro žraloka i Krakena).
   Při dlouhé sérii přidá hudba bicí.
 - **Efekty série (combo):** počítadlo ×N, bubliny, vlnky, pochvaly (Pěkně! · Super! · Úžasné! …), záře a hejno ryb;
   tóny karet stoupají v tónině aktuální hudby
@@ -67,12 +74,12 @@ prohlížeče a díky service workeru funguje i offline.
 - Klepni na odkrytou kartu o **1 vyšší nebo nižší** než karta na odkládací hromádce (K ↔ A navazují).
 - Když není tah, klepni na **balíček** vlevo dole.
 - Na domovské obrazovce: **Úkoly** (vlevo dole) utrácí hvězdičky, zelené tlačítko **Level** spouští další level,
-  **Mapa** ukazuje všech 100 levelů, **Album** všechny scény, **Výzva** denní výzvu, **Sbírka** nálepky, **Úspěchy** trofeje.
+  **Mapa** ukazuje všech 150 levelů, **Album** všechny scény, **Výzva** denní výzvu, **Sbírka** nálepky, **Úspěchy** trofeje.
 
 ## Testy
 
 ```bash
-node tests/engine.test.js        # řešitelnost všech 100 levelů a 30 denních výzev (~4 min) + simulace obtížnosti
+node tests/engine.test.js        # řešitelnost všech 150 levelů a 30 denních výzev (~7 min) + simulace obtížnosti
 python3 -m http.server 8000 &    # server pro test v prohlížeči
 node tests/browser.test.js       # (jiný port: URL=http://localhost:8123/) vyžaduje: npm i playwright && npx playwright install chromium
 ```
@@ -85,9 +92,10 @@ rozehraj level, zavři Safari a znovu otevři → tlačítko ukáže **Pokračov
 ```
 index.html              obrazovky + SVG ikony a barvy karet
 css/style.css           vzhled, animace, responzivita
-js/levels.js            rozložení karet (ASCII), 100 levelů, kapitoly, denní výzva
+js/levels.js            rozložení karet (ASCII), 150 levelů, kapitoly, denní výzva
 js/engine.js            herní logika (generátor řešitelných rozdání, tahy, hvězdy)
-js/art.js, art2.js      SVG grafika (art2 = tvorové a dekorace Hlubin)
+js/art.js, art2.js,     SVG grafika (art2 = tvorové a dekorace Hlubin,
+  art3.js               art3 = nebe, pobřeží, maják, lodě, rackové a další tvorové Bouřlivé hladiny)
 js/scenes.js            10 dekoračních scén s úkoly
 js/meta.js              denní výzva, nálepky, úspěchy, obyvatelé scén, 3★ výzva
 js/shop.js              Perlový obchod (perly, nabídky, kasička, vzhled)

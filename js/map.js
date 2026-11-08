@@ -1,5 +1,5 @@
 /* =========================================================================
-   Korálové sny – mapa levelů 1–100 ve dvou světech (čím hlouběji, tím těžší)
+   Korálové sny – mapa levelů 1–150 ve třech světech (čím dál, tím těžší)
    ========================================================================= */
 (function (root) {
   'use strict';
@@ -25,7 +25,7 @@
     posFor(n, W) {
       const ch = Math.floor((n - 1) / 10);
       const amp = Math.min(W * 0.27, 170);
-      return { x: W / 2 + Math.sin((n - 1) * 0.85) * amp, y: TOP + (n - 1) * SP + ch * CH_GAP + (n > 50 ? WORLD_GAP : 0) };
+      return { x: W / 2 + Math.sin((n - 1) * 0.85) * amp, y: TOP + (n - 1) * SP + ch * CH_GAP + (n > 50 ? WORLD_GAP : 0) + (n > 100 ? WORLD_GAP : 0) };
     },
 
     build() {
@@ -54,8 +54,11 @@
       const R = CD.Art.rng(7);
       // svět Hlubiny má tmavší pozadí
       const deepY = this.pts[50].y - CH_GAP - WORLD_GAP + 20;
-      html = `<div class="map-deep" style="top:${deepY}px;height:${H - deepY}px"></div>` + html;
+      const surfY = this.pts[100] ? this.pts[100].y - CH_GAP - WORLD_GAP + 20 : H;
+      html = `<div class="map-deep" style="top:${deepY}px;height:${surfY - deepY}px"></div>` +
+        (this.pts[100] ? `<div class="map-surface" style="top:${surfY}px;height:${H - surfY}px"></div>` : '') + html;
       html += `<div class="world-banner" style="top:${deepY + 30}px"><small>Svět 2</small>🌊 Hlubiny<span>${d.unlocked > 50 ? 'Těžší levely s novými překážkami' : 'Odemkne se po levelu 50'}</span></div>`;
+      if (this.pts[100]) html += `<div class="world-banner surface" style="top:${surfY + 30}px"><small>Svět 3</small>⛈️ Bouřlivá hladina<span>${d.unlocked > 100 ? 'Příliv, řetězy, blesky, víry a Kraken' : 'Odemkne se po levelu 100'}</span></div>`;
       for (let i = 0; i < 52; i++) {
         const left = i % 2 === 0, y = 160 + i * (H - 300) / 52 + R() * 60;
         const h = 60 + R() * 90, c = ['#2fae6b', '#46c47d', '#ff7eb6', '#ffb36b', '#b48cff'][i % 5];
@@ -75,8 +78,8 @@
         const state = n > d.unlocked ? 'locked' : best ? 'done' : 'current';
         const running = d.run && d.run.level === n && !(d.run.state && d.run.state.mode);
         const def = CD.Levels.get(n);
-        html += `<button class="node ${state}${running ? ' running' : ''}${def.boss ? ' boss-node' : ''}${n > 50 ? ' deep' : ''}" data-n="${n}" style="left:${p.x}px;top:${p.y}px" aria-label="Level ${n}">
-<span class="num">${state === 'locked' ? CD.UI.icon('lock') : n}</span>${state !== 'locked' ? CD.UI.starsHTML(best, 3, 'nstars') : ''}${def.boss ? '<span class="node-boss">🦈</span>' : ''}${d.chal[n] ? '<span class="node-crown">🏆</span>' : ''}</button>`;
+        html += `<button class="node ${state}${running ? ' running' : ''}${def.boss ? ' boss-node' : ''}${n > 100 ? ' surface' : n > 50 ? ' deep' : ''}" data-n="${n}" style="left:${p.x}px;top:${p.y}px" aria-label="Level ${n}">
+<span class="num">${state === 'locked' ? CD.UI.icon('lock') : n}</span>${state !== 'locked' ? CD.UI.starsHTML(best, 3, 'nstars') : ''}${def.boss ? `<span class="node-boss">${def.boss === 'kraken' ? '🐙' : '🦈'}</span>` : ''}${d.chal[n] ? '<span class="node-crown">🏆</span>' : ''}</button>`;
       });
       inner.innerHTML = html;
       inner.querySelectorAll('.node').forEach(b => b.addEventListener('click', () => this.openLevel(+b.dataset.n)));
@@ -98,7 +101,7 @@
       if (n > d.unlocked) { CD.Sound.play('bad'); CD.UI.toast(`Nejdřív dohraj level ${d.unlocked}.`); return; }
       const def = CD.Levels.get(n), best = d.best[n] || 0;
       const running = d.run && d.run.level === n && !(d.run.state && d.run.state.mode);
-      const OB = { ink: '🖤 Inkoust', ice: '🧊 Led', bub: '🫧 Bubliny', shell: '🐚 Mušle' };
+      const OB = { ink: '🖤 Inkoust', ice: '🧊 Led', bub: '🫧 Bubliny', shell: '🐚 Mušle', tide: '🌊 Příliv', chain: '⛓️ Řetězy', bottle: '🍾 Lahve', bolt: '⚡ Blesky' };
       const m = CD.UI.modal({ title: `Level ${n}`, cls: 'm-level', html: `
 <div class="lv-chapter">Kapitola ${def.chapter + 1} · ${CD.Levels.CHAPTERS[def.chapter]} · <i>${def.name}</i></div>
 ${CD.UI.starsHTML(best, 3, 'lv-stars')}
@@ -108,7 +111,8 @@ ${this.preview(def.lay, def.open)}
   <span>V balíčku <b>${def.stockSize - 1}</b></span>
   ${def.locks ? `<span>${CD.UI.icon('lock')} Zámky <b>${def.locks}</b></span>` : ''}
   ${Object.keys(OB).filter(k => def[k]).map(k => `<span>${OB[k]} <b>${def[k]}</b></span>`).join('')}
-  ${def.boss ? '<span>🦈 <b>Boss</b></span>' : ''}
+  ${def.vortex ? '<span>🌀 <b>Vír</b></span>' : ''}
+  ${def.boss ? `<span>${def.boss === 'kraken' ? '🐙 <b>Boss Kraken</b>' : '🦈 <b>Boss</b>'}</span>` : ''}
 </div>
 <div class="lv-goal">${CD.UI.icon('star', 'st on')} 3 hvězdy = zbude aspoň <b>${def.t3}</b> karet v balíčku · 2 hvězdy = aspoň <b>${def.t2}</b></div>
 <div class="m-btns">${running ? `<button class="btn btn-orange" data-new>Začít znovu</button><button class="btn btn-green" data-go>Pokračovat</button>` : `<button class="btn btn-green btn-lg" data-go>Hrát</button>`}</div>

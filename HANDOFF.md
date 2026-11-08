@@ -3,35 +3,38 @@
 ## 1. Aktuální cíl
 Prohlížečová hra „TriPeaks solitaire + dekorační meta" (originální podmořský svět), nasazená na
 https://kanucanu.github.io/SOLITAIREEE/ (repo kanucanu/SOLITAIREEE, větev `main`).
-Kolo 4 (tato session): monetizace – vybrán a zapracován **Perlový obchod** se druhou měnou (perly) a připraveným,
-ve výchozím stavu vypnutým napojením na skutečné platby.
+Kolo 5 (tato session): **třetí svět „Bouřlivá hladina"** (varianta A) – levely 101–150, 5 scén, nové překážky,
+boss Kraken, hudba, obyvatelé, nálepky, úspěchy a vzhled do obchodu.
 
 ## 2. Hotová práce (vše funkční a otestované)
-- Kola 1–3: 100 levelů ve 2 světech, překážky, bossové, denní výzva, nálepky, úspěchy, obyvatelé, 3★ výzva, hudba, combo.
-- **`js/shop.js` (nový):** `CD.Shop` – perly, okno obchodu se 4 záložkami:
-  - Nabídky: denní dárek zdarma (75 mincí, každý 3. den 1 perla), nabídka dne (6 rotujících, sleva počítaná automaticky),
-    startovní balíček (jednorázově, 9 perel), perlová kasička (plní se 25 % mincí z výher, max 2500, rozbití 10 perel od 400).
-  - Pomocníci: 1× / 5× (−20 %) za mince, velký balík za 18 perel. `PRICES` jsou sdílené s `game.js`.
-  - Vzhled: 6 rubů karet (`body[data-back]`) a 5 stolů (`body[data-table]`), nákup za perly, CSS na konci `style.css`.
-  - Perly: balíčky za peníze (jen když je platba zapnutá), výměna perel za mince, seznam, jak získat perly zdarma.
-- **`js/pay.js` (nový):** `CD.PayConfig` (provider `none`/`stripe`, odkazy Stripe Payment Links), `CD.Pay` – rodičovská
-  pojistka (násobilka), test `?obchod=test`/`?obchod=off`, návrat `?koupeno=perly_m&sid=cs_…` (sid jen jednou, `d.purchases`).
-- **Zdroje perel:** perla z mušle +1 (v `st.pearlsWon`, tah zpět ji vrátí), první 3 ★ +1, boss poprvé +5, dohraný svět +10,
-  denní výzva +2 (jen poprvé za den), 3★ výzva poprvé +2, kalendář den 7 +5, sady nálepek +5/+10, úspěchy +2–10, truhla scény +3.
-- `storage.js`: nová pole `pearls` (start 15), `bank`, `owned`, `look`, `shop`, `purchases` + kontrola.
-- UI: tlačítko „Obchod" s počtem perel a odznakem, „+" u mincí (domov, mapa) otevře obchod, perly v oknech výher,
-  nápověda „Jak hrát", varování při mazání postupu o zakoupených perlách. `sw.js` CACHE v4.
-- Testy: `tests/browser.test.js` 14/14 OK, play-test (boss 60, level 91, výzva, denní) bez chyb, vlastní test obchodu
-  (všechny nákupy, kasička, vzhled ve hře, testovací platba s pojistkou, návrat z platby bez dvojího připsání).
-  Engine/levely se neměnily.
+- Kola 1–4: 100 levelů ve 2 světech, překážky, žralok, denní výzva, nálepky, úspěchy, obyvatelé, 3★ výzva,
+  hudba, combo, Perlový obchod s perlami (`js/shop.js`, `js/pay.js` – platby vypnuté).
+- **`js/engine.js`:** nové překážky – příliv (`tide`, cyklus 8 tahů, 5.–7. tah voda), kotva s řetězem (`ch`, páry,
+  `st.chainWait`), láhev (`bottle` → loot v `st.loot`, připíše se až na konci hry), blesk (`bolt`, otočí sousedy),
+  vír (`def.vortex`, prohození při líznutí, deterministicky přes `st.vseed`), boss Kraken (`def.boss === 'kraken'`,
+  chapadlo každé 4 tahy, `khp` 3 zásahy sériemi 5/10/15). Žralok je nadále `boss: true`.
+- **`js/levels.js`:** 10 nových rozložení (celkem 41), levely 101–150 (bossové 110–150), kapitoly 11–15, `WORLDS[2]`.
+- **`js/game.js`:** UI všech nových prvků (překryvy, ukazatel přílivu, widget Krakena se srdíčky, úvodní okno
+  „Velké finále" na 150, tipy při prvním výskytu, loot v okně výhry, `stats.kraken`), texty konce světa 2 a 3.
+- **`js/art3.js` (nový):** nebe, moře, útesy, maják, lodě, molo, palmy, racci, papuchalci, vydry, poustevníčci,
+  kocour, želvičky, hodný Kraken… `js/scenes.js`: scény 11–15 (Zhasnutý maják, Přístav racků, Bouřkový útes,
+  Ostrov přílivu, Tónin ostrov). `js/music.js`: 6 nových témat. `js/sound.js`: 9 nových zvuků.
+- **Meta:** `storage.js` SCENES = 15, `unlocked` až 151; `meta.js` obyvatelé scén 11–15, 5. sada nálepek „Pobřeží"
+  (30 nálepek), úspěchy Strážce majáku, Doma na ostrově (15 scén), Bouřlivá hladina (level 150), Krotitel Krakena.
+- **Mapa:** 3. svět s vlastním pozadím a bannerem, oranžové uzly, odznak 🐙 u Krakena, překážky v okně levelu.
+- **Obchod:** rub „Maják" (45 perel), stůl „Pláž při západu" (45 perel). Album, nápověda „Jak hrát", `index.html`
+  (art3.js, popisky), `sw.js` CACHE v5, README, CLAUDE.md.
+- **Testy:** `node tests/engine.test.js` – všech 150 levelů i denní výzvy řešitelné; browser test OK;
+  Playwright průchod levely 101/105/111/121/131/150 na telefonu i iPadu (výhry, loot, Kraken, konec světa)
+  bez chyb v konzoli; screenshoty scén 11–15 s obyvateli.
 
 ## 3. Rozpracované úkoly a blokády
-- Skutečné placení není zapnuté: vyžaduje účet uživatele u Stripe (nebo zabalení do iOS aplikace s App Store nákupy).
-  Bez serveru se nákup ověřuje jen v prohlížeči (pro hru jednoho hráče přijatelné; přísné ověření = Cloudflare Worker + webhook).
-- Testováno jen v Chromiu; vzhled na iPadu ověří uživatel.
+- Žádné blokády. Testováno v Chromiu; vzhled na skutečném iPadu ověří uživatel.
+- Skutečné placení perel stále vypnuté (vyžaduje Stripe účet uživatele) – viz `js/pay.js`.
+- Obtížnost 101–150 je naladěná simulací (chytrý hráč vyhrává cca 15–64 %); případně doladit podle zpětné vazby.
 
 ## 4. Další kroky
-1. Pokud uživatel chce skutečné platby: založit Stripe Payment Links podle hlavičky `js/pay.js`, vložit odkazy,
-   `provider: 'stripe'`, zvýšit `CACHE` v `sw.js`, push do `main`.
-2. Případně vyladit ceny/odměny v `js/shop.js` (konstanty nahoře) podle zpětné vazby.
-3. Po změně `levels.js`/`engine.js` spustit `node tests/engine.test.js`; browser test `URL=http://localhost:8123/ node tests/browser.test.js`.
+1. Podle zpětné vazby z iPadu doladit obtížnost (v `js/levels.js` hlavně `slack`/počty překážek) a umístění obyvatel.
+2. Po každé změně `levels.js`/`engine.js` spustit `node tests/engine.test.js` (~7 min).
+3. Browser test: `URL=http://localhost:8123/ node tests/browser.test.js` (server `python3 -m http.server 8123`).
+4. Při změně souborů zvýšit `CACHE` v `sw.js`, aby se aktualizace dostala i do nainstalované hry.

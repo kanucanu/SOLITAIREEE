@@ -209,7 +209,7 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
         m.close(true);
         if (last) {
           this.updateHud();
-          CD.UI.modal({ title: 'Gratulujeme!', html: `<p class="m-text big">Opravil(a) jsi celé podmořské království i Hlubiny! 🐢💙🦈</p><p class="m-text">Můžeš dál hrát levely, sbírat 3 hvězdičky, plnit denní výzvy a výzvy na tahy.</p>` });
+          CD.UI.modal({ title: 'Gratulujeme!', html: `<p class="m-text big">Opravil(a) jsi celé podmořské království, Hlubiny i Bouřlivou hladinu! 🐢💙🐙</p><p class="m-text">Můžeš dál hrát levely, sbírat 3 hvězdičky, plnit denní výzvy a výzvy na tahy.</p>` });
         } else {
           $('#homeScene').classList.add('fade');
           setTimeout(() => { this.render(); $('#homeScene').classList.remove('fade'); this.greet(); CD.Music.forScreen('home'); }, 450);
@@ -226,7 +226,7 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
         const open = i <= d.scene;
         return `<button class="alb ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>
 <div class="alb-thumb">${open ? CD.Scenes.render(i, d.tasks[i], { noFront: true, cls: 'thumb' }) : `<div class="alb-lock">${CD.UI.icon('lock')}</div>`}${d.chests[i] ? `<div class="alb-done">${CD.UI.icon('check')}</div>` : ''}</div>
-<div class="alb-name">${i + 1}. ${open ? sc.name : '???'}${i === 5 ? ' <small>· Hlubiny</small>' : ''}</div>
+<div class="alb-name">${i + 1}. ${open ? sc.name : '???'}${i === 5 ? ' <small>· Hlubiny</small>' : i === 10 ? ' <small>· Bouřlivá hladina</small>' : ''}</div>
 <div class="alb-bar"><i style="width:${d.tasks[i] / 6 * 100}%"></i><span>${d.tasks[i]}/6</span></div></button>`;
       }).join('');
       const m = CD.UI.modal({ title: 'Album scén', cls: 'm-album', html: `<div class="alb-grid">${cards}</div>` });

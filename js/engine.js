@@ -47,12 +47,20 @@
      (inkoust, led, bubliny, mušle) a pro žraloka v boss levelech. */
   const BOSS_EVERY = 3;               // žralok sežere kartu po každém 3. líznutí
   const OBST = ['ink', 'ice', 'bub', 'shell'];
+  /* svět 3 – Bouřlivá hladina (vše deterministické, aby generátor zaručil řešitelnost) */
+  const TIDE_CYCLE = 8, TIDE_HIGH = 5;   // příliv: z každých 8 tahů je voda nahoře v tazích 5–7
+  const KRAKEN_EVERY = 4;               // Kraken po každém 4. tahu chytí chapadlem jednu kartu
+  const KRAKEN_HP = 3;                  // Krakena zaženou 3 série (5, 10, 15 karet)
+  const VORTEX_EVERY = 4;               // vír po každém 4. líznutí prohodí dvě volné karty
+  const BOTTLE = ['', 'wild', 'undo', 'shuffle', 'pearl'];
 
   function blank(def, level, seed) {
     return {
-      level, seed, cards: def.lay.slots.map(() => ({ r: 0, s: 0, up: false, gone: false, lock: 0, key: 0, coin: false, ink: false, ice: 0, bub: 0, bn: 0, shell: 0 })),
+      level, seed, cards: def.lay.slots.map(() => ({ r: 0, s: 0, up: false, gone: false, lock: 0, key: 0, coin: false, ink: false, ice: 0, bub: 0, bn: 0, shell: 0, tide: false, ch: 0, bottle: 0, bolt: false, tent: false })),
       stock: [], si: 1, waste: [], opened: [], streak: 0, maxStreak: 0, coinsWon: 0, plus: 0, moves: 0,
-      draws: 0, eaten: 0, lastEaten: null, obst: 0, boss: !!def.boss, sol: [],
+      draws: 0, eaten: 0, lastEaten: null, obst: 0, boss: def.boss === true, sol: [],
+      kraken: def.boss === 'kraken', khp: def.boss === 'kraken' ? KRAKEN_HP : 0, tide: !!def.tide, vortex: !!def.vortex,
+      vseed: seed >>> 0, chainWait: 0, loot: [], lastSwap: null, lastTent: -1,
     };
   }
 
@@ -88,7 +96,29 @@
         else c.shell = 1;
       }
     });
-    const orig = cards.map(c => ({ ink: c.ink, ice: c.ice, bn: c.bn, shell: c.shell }));
+    // překážky Bouřlivé hladiny
+    const isFreeSlot = i => !lay.slots[i].coveredBy.length;
+    const pool3 = () => cards.map((_, i) => i).filter(i => { const c = cards[i]; return !c.lock && !c.key && !c.ink && !c.ice && !c.bub && !c.shell && !c.tide && !c.ch && !c.bottle && !c.bolt; });
+    const nCh = Math.round((def.chain || 0) * scale);
+    for (let g = 1; g <= nCh; g++) {               // řetěz: dvojice ve stejné řadě (nemohou se navzájem zakrývat)
+      const p = pool3(), pairs = [];
+      p.forEach(a => p.forEach(b => { if (a < b && lay.slots[a].y === lay.slots[b].y && Math.abs(lay.slots[a].x - lay.slots[b].x) >= 4) pairs.push([a, b]); }));
+      if (!pairs.length) break;
+      const [a, b] = pairs[pickIdx(R, pairs)];
+      cards[a].ch = cards[b].ch = g;
+    }
+    const nTide = Math.round((def.tide || 0) * scale);
+    if (nTide) {                                    // příliv zaplavuje spodní řady
+      const maxY = lay.maxY, low = pool3().filter(i => lay.slots[i].y >= maxY - 2);
+      for (let k = 0; k < nTide && low.length; k++) cards[low.splice(pickIdx(R, low), 1)[0]].tide = true;
+    }
+    for (let k = 0; k < (def.bottle || 0); k++) { const p = pool3(); if (p.length) cards[p[pickIdx(R, p)]].bottle = 1 + Math.floor(R() * 4); }
+    for (let k = 0; k < (def.bolt || 0); k++) { const p = pool3().filter(i => !isFreeSlot(i)); if (p.length) cards[p[pickIdx(R, p)]].bolt = true; }
+    st.tide = nTide > 0;
+    const orig = cards.map(c => ({ ink: c.ink, ice: c.ice, bn: c.bn, shell: c.shell, tide: c.tide, ch: c.ch, bottle: c.bottle, bolt: c.bolt }));
+    // vír prohazuje hodnoty karet → hodnoty se přiřazují "identitám", které vír přesouvá
+    st.idmap = cards.map((_, i) => i);
+    const final = cards.map(() => ({ r: 0, s: 0 }));
 
     // barvy – rovnoměrně, ať se moc neopakují stejné karty
     const used = {};
@@ -134,6 +164,7 @@
         if (R() < 0.3) dir = -dir;
         v = wrap(v + dir);
         cards[i].r = v; cards[i].s = suitFor(v);
+        final[st.idmap[i]] = { r: v, s: cards[i].s };
         play(st, i);
         st.sol.push(i);
       }
@@ -143,11 +174,13 @@
 
     // vrátit stůl do výchozího stavu
     cards.forEach((c, i) => {
-      Object.assign(c, orig[i]);
-      c.gone = false;
+      Object.assign(c, orig[i], final[i]);
+      c.gone = false; c.tent = false;
       c.up = def.open || lay.slots[i].coveredBy.length === 0;
     });
-    Object.assign(st, { si: 1, waste: [st.stock[0]], opened: [], streak: 0, maxStreak: 0, coinsWon: 0, moves: 0, draws: 0, eaten: 0, lastEaten: null, obst: 0 });
+    delete st.idmap;
+    Object.assign(st, { si: 1, waste: [st.stock[0]], opened: [], streak: 0, maxStreak: 0, coinsWon: 0, moves: 0, draws: 0, eaten: 0, lastEaten: null, obst: 0,
+      khp: st.kraken ? KRAKEN_HP : 0, chainWait: 0, loot: [], lastSwap: null, lastTent: -1 });
     return st;
   }
 
@@ -174,9 +207,33 @@
     if (c.ice > 0) return 'ice';
     if (c.bub && c.bn > 0) return 'bub';
     if (c.shell === 1) return 'shell';
+    if (c.tent) return 'tent';
+    if (c.tide && tideHigh(st)) return 'tide';
+    if (st.chainWait) return c.ch === st.chainWait ? '' : 'chainwait';
+    if (c.ch) {
+      const p = partner(st, i);
+      if (p >= 0 && !isFree(st, p)) return 'chain';
+    }
     return '';
   }
   function isLocked(st, i) { return blockReason(st, i) !== ''; }
+  function partner(st, i) { const g = st.cards[i].ch; return g ? st.cards.findIndex((d, j) => j !== i && d.ch === g && !d.gone) : -1; }
+  function tideHigh(st) { return !!st.tide && st.moves % TIDE_CYCLE >= TIDE_HIGH; }
+  function tideIn(st) { const p = st.moves % TIDE_CYCLE; return p >= TIDE_HIGH ? TIDE_CYCLE - p : TIDE_HIGH - p; }   // tahů do změny
+  /* Kraken: po každém 4. tahu chytí jednu volnou kartu (jen pokud vedle ní je jiná volná karta, kterou ji jde uvolnit) */
+  function krakenTick(st) {
+    if (!st.kraken || st.khp <= 0 || st.moves % KRAKEN_EVERY || st.cards.some(c => !c.gone && c.tent)) return -1;
+    const lay = layOf(st), cand = [];
+    st.cards.forEach((c, i) => {
+      if (c.gone || c.ch || c.tide || !isFree(st, i) || isLocked(st, i)) return;
+      if (lay.slots[i].nb.some(j => !st.cards[j].gone && isFree(st, j))) cand.push(i);
+    });
+    if (!cand.length) return -1;
+    const R = mulberry32((st.vseed * 31 + st.moves * 7919) >>> 0), i = cand[Math.floor(R() * cand.length)];
+    st.cards[i].tent = true;
+    st.lastTent = i;
+    return i;
+  }
   function top(st) { return st.waste[st.waste.length - 1]; }
   function canPlay(st, i) {
     if (!isFree(st, i) || isLocked(st, i)) return false;
@@ -222,8 +279,26 @@
     });
     if (st.streak >= 5) st.cards.forEach((d, j) => { if (!d.gone && d.shell === 1) { d.shell = 2; fx.shellsOpened.push(j); st.obst = (st.obst || 0) + 1; } });
     st.coinsWon += c.shell ? 40 : 0;
+    // Bouřlivá hladina: chapadla, řetěz, láhev, blesk, zásahy Krakena
+    Object.assign(fx, { tentCleared: [], chainDone: false, chainStart: -1, bottle: BOTTLE[c.bottle] || '', bolted: [], krakenHit: 0, tent: -1 });
+    st.lastTent = -1;
+    layOf(st).slots[i].nb.forEach(j => {
+      const d = st.cards[j];
+      if (!d.gone && d.tent) { d.tent = false; fx.tentCleared.push(j); st.obst = (st.obst || 0) + 1; }
+    });
+    if (c.ch) {
+      if (st.chainWait === c.ch) { st.chainWait = 0; fx.chainDone = true; st.coinsWon += 20; st.obst = (st.obst || 0) + 1; }
+      else { const p = partner(st, i); if (p >= 0) { st.chainWait = c.ch; fx.chainStart = p; } }
+    }
+    if (c.bottle) st.loot.push(BOTTLE[c.bottle]);
+    if (c.bolt) layOf(st).slots[i].nb.forEach(j => { const d = st.cards[j]; if (!d.gone && !d.up) { d.up = true; fx.bolted.push(j); } });
+    if (st.kraken && st.khp > 0 && (st.streak === 5 || st.streak === 10 || st.streak === 15)) {
+      st.khp--; fx.krakenHit = KRAKEN_HP - st.khp; st.coinsWon += 30;
+      if (!st.khp) st.cards.forEach((d, j) => { if (d.tent) { d.tent = false; fx.tentCleared.push(j); } });   // Kraken uplave
+    }
     const flipped = [];
     st.cards.forEach((d, j) => { if (!d.gone && !d.up && isFree(st, j)) { d.up = true; flipped.push(j); } });
+    fx.tent = krakenTick(st);
     return Object.assign({ coin, bonus, opened, flipped, coinCard: c.coin, won: isWon(st) }, fx);
   }
 
@@ -236,6 +311,22 @@
     st.lastEaten = null;
     // boss: žralok po každém 3. líznutí sežere další kartu z balíčku
     if (st.boss && st.draws % BOSS_EVERY === 0 && stockLeft(st) > 0) { st.lastEaten = st.stock[st.si++]; st.eaten = (st.eaten || 0) + 1; }
+    // vír: po každém 4. líznutí prohodí dvě volné karty
+    st.lastSwap = null;
+    if (st.vortex && st.draws % VORTEX_EVERY === 0) {
+      const free = [];
+      st.cards.forEach((d, j) => { if (!d.gone && isFree(st, j)) free.push(j); });
+      if (free.length >= 2) {
+        const R = mulberry32((st.vseed * 17 + st.draws * 104729) >>> 0);
+        const a = free.splice(Math.floor(R() * free.length), 1)[0], b = free[Math.floor(R() * free.length)];
+        const A = st.cards[a], B = st.cards[b];
+        [A.r, B.r] = [B.r, A.r]; [A.s, B.s] = [B.s, A.s];
+        if (st.idmap) [st.idmap[a], st.idmap[b]] = [st.idmap[b], st.idmap[a]];
+        st.lastSwap = [a, b];
+      }
+    }
+    st.lastTent = -1;
+    krakenTick(st);
     return c;
   }
 
@@ -295,8 +386,8 @@
   function restore(st, json) { const o = JSON.parse(json); o.sol = st.sol; return o; }
 
   CD.Engine = {
-    RANKS, SUITS, mulberry32, adjacent, wrap, BOSS_EVERY,
-    newGame, isFree, isLocked, blockReason, limitReached, top, canPlay, playable, stockLeft, hasMoves, isWon, remaining,
+    RANKS, SUITS, mulberry32, adjacent, wrap, BOSS_EVERY, TIDE_CYCLE, KRAKEN_EVERY, KRAKEN_HP, VORTEX_EVERY,
+    newGame, isFree, isLocked, blockReason, limitReached, tideHigh, tideIn, partner, top, canPlay, playable, stockLeft, hasMoves, isWon, remaining,
     play, draw, useWild, shuffle, addStock, stars, plusPrice, snap, restore,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
