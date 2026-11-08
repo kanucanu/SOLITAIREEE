@@ -7,6 +7,7 @@
   const { $ } = CD.UI;
   const E = () => CD.Engine;
   const GX = 1.06;                      // vodorovná mezera mezi kartami
+  const GX_MIN = 0.64;                  // nejtěsnější vějíř na úzkém displeji (64 % karty zůstane vidět)
   const PRICES = CD.Shop.PRICES;          // ceny pomocníků v mincích (společné s obchodem)
   const LOCK_COLORS = ['', 'gold', 'pink', 'blue'];
   // stupeň série: 0 (méně než 3) … 4 (15 a víc) – určuje barvu a sílu efektů
@@ -65,7 +66,17 @@
       this.build();
       CD.UI.show('game');
       this.layout();
+      // když se změní výška horní lišty (ukazatel přílivu, počet tahů…), stůl se přeskládá
+      if (!this.ro && root.ResizeObserver) {
+        let last = '';
+        this.ro = new ResizeObserver(([e]) => {
+          const k = Math.round(e.contentRect.width) + 'x' + Math.round(e.contentRect.height);
+          if (k !== last) { last = k; if (this.st && !this.ended) this.layout(); }
+        });
+        this.ro.observe($('#board'));
+      }
       this.renderAll();
+      this.layout();   // až teď má horní lišta finální výšku (text přílivu, tahy)
       this.persist();
       if (fresh && this.def.boss) setTimeout(() => this.bossIntro(), 350);
       else setTimeout(() => this.tips(), 400);
@@ -130,6 +141,52 @@
     },
 
     /* ---------- rozměry ---------- */
+    /* Rozmístění stolu do dostupné plochy: nejvyšší možná karta. Široká rozložení se na výšku
+       buď rozdělí na dva řádky (když se skládají z oddělených vrcholů), nebo se karty v řadě
+       částečně překryjí jako vějíř (roh s hodnotou zůstává vidět). Herní logika se nemění. */
+    fitBoard(lay, w, h) {
+      const band = idx => {
+        const xs = idx.map(i => lay.slots[i].x), ys = idx.map(i => lay.slots[i].y);
+        const x0 = Math.min(...xs);
+        return { idx, x0, maxX: Math.max(...xs) - x0, maxY: Math.max(...ys) };
+      };
+      const size = bands => {
+        const maxX = Math.max(...bands.map(b => b.maxX));
+        const hUnits = bands.reduce((a, b) => a + (b.maxY / 2 + 1) * 1.4, 0) + (bands.length - 1) * 0.42;
+        const hMax = h / hUnits, plain = Math.min(w / (maxX * GX / 2 + 1), hMax, 132);
+        const cw = Math.min(w / (maxX * GX_MIN / 2 + 1), hMax, 132);
+        const gx = cw > plain ? Math.max(GX_MIN, Math.min(GX, (w / cw - 1) * 2 / Math.max(1, maxX))) : GX;
+        return { bands, cw: Math.max(26, Math.floor(cw)), gx, plain };
+      };
+      const all = size([band(lay.slots.map((_, i) => i))]);
+      const blocks = this.blocks(lay);
+      // dělí se jen široká rozložení ze samostatných vrcholů (ne sloupečky karet, které patří k sobě)
+      const xr = b => { const xs = b.map(i => lay.slots[i].x); return Math.max(...xs) - Math.min(...xs); };
+      if (blocks.length < 2 || lay.maxX < 16 || blocks.some(b => xr(b) < 4)) return all;
+      let best = null;
+      for (let k = 1; k < blocks.length; k++) {
+        const f = size([band(blocks.slice(0, k).flat()), band(blocks.slice(k).flat())]);
+        if (!best || f.cw > best.cw) best = f;
+      }
+      // dva řádky jen když opravdu pomůžou a karty se v nich nemusí překrývat víc než v jednom
+      return best.cw > all.plain * 1.15 && best.gx >= all.gx && best.cw >= all.cw * 0.9 ? best : all;
+    },
+    /* skupiny karet, které se navzájem nepřekrývají ani nestojí nad sebou (oddělené vrcholy), zleva doprava */
+    blocks(lay) {
+      if (lay._blocks) return lay._blocks;
+      const n = lay.slots.length, p = [...Array(n).keys()], f = i => p[i] === i ? i : (p[i] = f(p[i]));
+      lay.slots.forEach((s, i) => s.coveredBy.forEach(j => { p[f(i)] = f(j); }));
+      const comps = {};
+      lay.slots.forEach((s, i) => (comps[f(i)] = comps[f(i)] || []).push(i));
+      const list = Object.values(comps).map(idx => ({ idx, a: Math.min(...idx.map(i => lay.slots[i].x)), b: Math.max(...idx.map(i => lay.slots[i].x)) + 2 }))
+        .sort((x, y) => x.a - y.a);
+      const out = [];
+      list.forEach(c => {
+        const last = out[out.length - 1];
+        if (last && c.a < last.b) { last.idx.push(...c.idx); last.b = Math.max(last.b, c.b); } else out.push({ idx: c.idx.slice(), b: c.b });
+      });
+      return (lay._blocks = out.map(o => o.idx));
+    },
     layout() {
       if (!this.st) return;
       // telefon na výšku: lišta ve dvou řádcích, velikost karet v liště podle šířky displeje
@@ -137,18 +194,24 @@
       if (stacked) $('#scr-game').style.setProperty('--bcw', Math.round(Math.max(54, Math.min(innerWidth * 0.2, 92))) + 'px');
       const board = $('#board'), r = board.getBoundingClientRect(), lay = this.def.lay;
       const w = r.width - 16, h = r.height - 16;
-      const unitsW = lay.maxX * GX / 2 + 1, unitsH = (lay.maxY / 2 + 1) * 1.4;
-      const cw = Math.max(26, Math.floor(Math.min(w / unitsW, h / unitsH, 132)));
-      const ch = Math.round(cw * 1.4);
+      const g = this.fitBoard(lay, w, h);
+      const cw = g.cw, ch = Math.round(cw * 1.4), gap = Math.round(ch * 0.3);
       // když zbývá místo na výšku (telefon na výšku), řady karet se roztáhnou, ať se tolik nepřekrývají
-      const sy = lay.maxY ? Math.max(ch / 2, Math.min(ch * 0.7, (h - ch) / lay.maxY)) : ch / 2;
-      const ox = (r.width - unitsW * cw) / 2, oy = Math.max(8, (r.height - lay.maxY * sy - ch) / 2);
+      const rowsY = g.bands.reduce((a, b) => a + b.maxY, 0), cardsH = g.bands.length * ch + (g.bands.length - 1) * gap;
+      const sy = rowsY ? Math.max(ch / 2, Math.min(ch * 0.7, (h - cardsH) / rowsY)) : ch / 2;
+      let top = Math.max(8, (r.height - rowsY * sy - cardsH) / 2);
+      const pos = [];
+      g.bands.forEach(b => {
+        const ox = (r.width - (b.maxX * g.gx / 2 + 1) * cw) / 2;
+        b.idx.forEach(i => { pos[i] = [ox + (lay.slots[i].x - b.x0) * cw / 2 * g.gx, top + lay.slots[i].y * sy]; });
+        top += b.maxY * sy + ch + gap;
+      });
       this.cw = cw;
       board.classList.add('no-anim');
       this.els.forEach((el, i) => {
         const s = lay.slots[i];
         Object.assign(el.style, {
-          left: (ox + s.x * cw / 2 * GX).toFixed(1) + 'px', top: (oy + s.y * sy).toFixed(1) + 'px',
+          left: pos[i][0].toFixed(1) + 'px', top: pos[i][1].toFixed(1) + 'px',
           width: cw + 'px', height: ch + 'px', fontSize: cw + 'px', zIndex: 10 + s.y * 2,
         });
       });
