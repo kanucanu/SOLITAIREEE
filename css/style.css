@@ -939,3 +939,15 @@ button.pill { cursor: pointer; }
 .map-surface { position: absolute; left: 0; right: 0; z-index: 0; pointer-events: none; background: linear-gradient(#05041a, #2f3358 160px, #5a5f9a 30%, #ff9a7a 55%, #ffd59a 70%, #7fd0ff 85%, #3fb8d8); }
 .world-banner.surface { background: linear-gradient(#7a7fa8, #3a3f6a); }
 .node.surface:not(.locked):not(.current):not(.running) { background: radial-gradient(circle at 35% 30%, #fff, #ffe0b0 30%, #ff9a6b 75%, #d9603a); box-shadow: 0 5px 0 #9a3a1a, 0 10px 18px rgba(0,0,0,.3); text-shadow: 0 2px 0 #9a3a1a; }
+/* telefon na výšku: horní lišta hry ve dvou řádcích (ikony nahoře, level a série pod nimi) */
+@media (max-width: 600px) and (orientation: portrait) {
+  .g-top { flex-wrap: wrap; row-gap: 4px; gap: 8px; padding-left: calc(10px + var(--safe-l)); padding-right: calc(10px + var(--safe-r)); }
+  .g-top .hud-left, .g-top .hud-right { gap: 8px; }
+  .g-top .round-btn { width: 40px; height: 40px; font-size: 21px; }
+  .g-top .pill { padding-right: 14px; }
+  .g-stars { padding: 4px 8px; }
+  .g-stars .st { width: 22px; height: 22px; }
+  .g-mid { order: 3; flex: 1 0 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px; }
+  .g-level { font-size: 18px; }
+  .streak { width: 130px; height: 22px; } .streak span { line-height: 18px; font-size: 13px; }
+}

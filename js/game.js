@@ -140,13 +140,15 @@
       const unitsW = lay.maxX * GX / 2 + 1, unitsH = (lay.maxY / 2 + 1) * 1.4;
       const cw = Math.max(26, Math.floor(Math.min(w / unitsW, h / unitsH, 132)));
       const ch = Math.round(cw * 1.4);
-      const ox = (r.width - unitsW * cw) / 2, oy = Math.max(8, (r.height - (lay.maxY / 2 + 1) * ch) / 2);
+      // když zbývá místo na výšku (telefon na výšku), řady karet se roztáhnou, ať se tolik nepřekrývají
+      const sy = lay.maxY ? Math.max(ch / 2, Math.min(ch * 0.7, (h - ch) / lay.maxY)) : ch / 2;
+      const ox = (r.width - unitsW * cw) / 2, oy = Math.max(8, (r.height - lay.maxY * sy - ch) / 2);
       this.cw = cw;
       board.classList.add('no-anim');
       this.els.forEach((el, i) => {
         const s = lay.slots[i];
         Object.assign(el.style, {
-          left: (ox + s.x * cw / 2 * GX).toFixed(1) + 'px', top: (oy + s.y * ch / 2).toFixed(1) + 'px',
+          left: (ox + s.x * cw / 2 * GX).toFixed(1) + 'px', top: (oy + s.y * sy).toFixed(1) + 'px',
           width: cw + 'px', height: ch + 'px', fontSize: cw + 'px', zIndex: 10 + s.y * 2,
         });
       });
