@@ -24,6 +24,10 @@ boss Kraken, hudba, obyvatelé, nálepky, úspěchy a vzhled do obchodu.
 - **Mapa:** 3. svět s vlastním pozadím a bannerem, oranžové uzly, odznak 🐙 u Krakena, překážky v okně levelu.
 - **Obchod:** rub „Maják" (45 perel), stůl „Pláž při západu" (45 perel). Album, nápověda „Jak hrát", `index.html`
   (art3.js, popisky), `sw.js` CACHE v5, README, CLAUDE.md.
+- **Telefon na výšku (po zpětné vazbě z iPhonu):** horní lišta hry ve dvou řádcích (CSS na konci `style.css`);
+  `game.js` `fitBoard()`/`blocks()` – rozložení ze samostatných vrcholů (ctyrvrch, diamanty3) se rozdělí do dvou řádků,
+  jiná široká rozložení se zobrazí jako vějíř (`GX_MIN = 0.64`), řady se roztáhnou na výšku (až 0,7 karty);
+  `ResizeObserver` + druhé `layout()` po `renderAll()` – opraveno přečuhování spodní řady u levelů s přílivem. `sw.js` v7.
 - **Testy:** `node tests/engine.test.js` – všech 150 levelů i denní výzvy řešitelné; browser test OK;
   Playwright průchod levely 101/105/111/121/131/150 na telefonu i iPadu (výhry, loot, Kraken, konec světa)
   bez chyb v konzoli; screenshoty scén 11–15 s obyvateli.
