@@ -16,6 +16,7 @@ Kompletní prohlížečová hra „TriPeaks solitaire + dekorační meta" v orig
 - `README.md` – návod: PC, iPad (lokální síť, GitHub Pages, Vercel, Netlify, Přidat na plochu), testy, úprava levelů.
 - `tests/engine.test.js` (Node, řešitelnost + obtížnost) – prochází, `tests/browser.test.js` (Playwright) – všech 14 kontrol prochází.
 - Hratelná verze zveřejněna jako soukromý Artifact: https://claude.ai/artifact/5KpzbZ7kpDCWEMKoL1js1T (zdroj: scratchpad/artifact/koralove-sny.html = index.html bez <head>, soubory css/ a js/ přiložené).
+- Kód je v repozitáři https://github.com/kanucanu/SOLITAIREEE (větev main) a hra běží na GitHub Pages: https://kanucanu.github.io/SOLITAIREEE/ (ověřeno: level 1 dohrán, ukládání i service worker fungují, bez chyb v konzoli).
 - Screenshoty zkontrolovány: iPad 1024×768, 768×1024, telefon 844×390; žádné chyby v konzoli.
 
 ## 3. Rozpracované úkoly a blokády
@@ -24,5 +25,6 @@ Kompletní prohlížečová hra „TriPeaks solitaire + dekorační meta" v orig
 
 ## 4. Další kroky
 1. Pokud uživatel nahlásí problém ze Safari/iPadu, nejdřív zkontrolovat `-webkit-` prefixy v `css/style.css` (3D flip karet, backface-visibility) a `touchmove` blokaci v `js/main.js` (scrollovat jde jen v prvcích s třídou `scrollable`).
-2. Při změně souborů po nasazení zvýšit `CACHE` verzi v `sw.js`.
+2. Při změně souborů po nasazení zvýšit `CACHE` verzi v `sw.js`. Nasazení = push do `main`, GitHub Pages se sestaví samo (~1–2 min).
+   Pozn.: Pages přes API zapnout nejde (proxy blokuje), nastavuje se ručně v Settings → Pages; pro test webu je potřeba prostředí `solitaireee` s povoleným hostem kanucanu.github.io.
 3. Po úpravě levelů spustit `node tests/engine.test.js`.
