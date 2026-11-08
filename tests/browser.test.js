@@ -6,7 +6,7 @@ const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) process
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true });
   const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()));
-  await p.goto('http://localhost:8000/'); await p.waitForTimeout(500);
+  await p.goto((process.env.URL||'http://localhost:8000/')+''); await p.waitForTimeout(500);
   await p.evaluate(() => { const d = CD.Store.data; d.unlocked = 5; CD.Store.save(); CD.Game.start(5, {}); });
   await p.waitForTimeout(500);
   const sol = await p.evaluate(() => CD.Game.st.sol);

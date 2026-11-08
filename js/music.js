@@ -9,6 +9,7 @@
   const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
   const MODES = {
     major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10],
+    phryg: [0, 1, 3, 5, 7, 8, 10], harm: [0, 2, 3, 5, 7, 8, 11],
   };
 
   /* Zápis: akordy v půltónech od základního tónu; melodie = takty, v každém jeden znak na krok
@@ -80,8 +81,76 @@
       perc: [{ i: 'timp', p: 'x.......', lvl: 0, v: 0.14 }, { i: 'shaker', p: '..x...x.', lvl: 1, v: 0.025 }, { i: 'timp', p: 'x...x.x.', lvl: 2, v: 0.1 }],
       fx: 'shimmer',
     },
+
+    /* ---------- svět 2: Hlubiny ---------- */
+    // 6. Inkoustový les – tajemná, hluboká, frygická (E)
+    ink: {
+      key: 64, mode: 'phryg', step: 0.38, steps: 8, cutoff: 2800, rev: 0.6,
+      chords: [[0, 3, 7], [1, 5, 8], [-2, 3, 7], [0, 3, 7]],
+      bass: 'R...R...', arp: [0, null, 1, null, 2, null, 4, null], arpInst: 'glass', arpVol: 0.04, pad: 0.035,
+      melInst: 'flute', melOct: 0, melVol: 0.07,
+      mel: ['4 - - - 5 - 4 -', '3 - - - 1 - . .', '2 - 3 - 4 - 6 -', '4 - - - - - . .',
+            '7 - - - 6 - 4 -', '5 - - - 3 - 1 -', '2 - 1 - 2 - 3 -', '0 - - - - - . .'],
+      perc: [{ i: 'drip', p: '..x.....', lvl: 0, v: 0.04 }, { i: 'shaker', p: '..x...x.', lvl: 1, v: 0.02 }, { i: 'kick', p: 'x...x...', lvl: 2, v: 0.13 }],
+      fx: 'drips',
+    },
+    // 7. Ledová jeskyně – křišťálové zvonky, h moll, pomalá
+    ice: {
+      key: 71, mode: 'minor', step: 0.34, steps: 8, cutoff: 6000, rev: 0.65,
+      chords: [[0, 3, 7], [-4, 0, 3], [-7, -3, 0], [-2, 2, 5]],
+      bass: 'R.......', arp: [0, 2, 3, 5, 3, 2, 1, 2], arpInst: 'box', arpVol: 0.04, pad: 0.025,
+      melInst: 'glass', melOct: 12, melVol: 0.08,
+      mel: ['4 - - 2 4 - 6 -', '5 - - - 4 - . .', '2 - - 0 2 - 4 -', '1 - - - - - . .',
+            '7 - - 6 7 - 9 -', '8 - - - 7 - . .', '6 - 4 - 2 - 1 -', '0 - - - - - . .'],
+      perc: [{ i: 'shaker', p: '....x...', lvl: 1, v: 0.02 }, { i: 'kick', p: 'x.......', lvl: 1, v: 0.1 }, { i: 'shaker', p: '..x...x.', lvl: 2, v: 0.02 }],
+      fx: 'shimmer',
+    },
+    // 8. Bublinková pole – rozverný funk, G mixolydická
+    vents: {
+      key: 55, mode: 'major', step: 0.24, steps: 8, cutoff: 4600, rev: 0.25,
+      chords: [[0, 4, 7], [-2, 2, 5], [5, 9, 12], [0, 4, 7]],
+      bass: 'R.R..5.8', arp: [null, 3, null, 2, null, 3, 4, null], arpInst: 'marimba', arpVol: 0.055, pad: 0,
+      melInst: 'steel', melOct: 12, melVol: 0.075,
+      mel: ['4 . 4 2 4 . 6 -', '5 . 5 3 5 - . .', '2 . 2 0 2 . 4 -', '3 - 2 - 1 - . .',
+            '4 . 4 2 4 . 7 -', '6 . 6 5 6 - . .', '5 4 3 2 3 - 4 -', '0 - . 0 0 - . .'],
+      perc: [{ i: 'kick', p: 'x...x...', lvl: 0, v: 0.13 }, { i: 'shaker', p: '.x.x.x.x', lvl: 0, v: 0.02 }, { i: 'shaker', p: 'xxxxxxxx', lvl: 2, v: 0.018 }],
+      fx: 'bubbles',
+    },
+    // 9. Perlový chrám – orientální, D harmonická moll, harfa a flétna
+    temple: {
+      key: 62, mode: 'harm', step: 0.3, steps: 8, cutoff: 4800, rev: 0.5,
+      chords: [[0, 3, 7], [-2, 2, 5], [-4, 0, 3], [7, 11, 14]],
+      bass: 'R..R..5.', arp: [0, 1, 2, 3, 4, 3, 2, 1], arpInst: 'harp', arpVol: 0.045, pad: 0.02,
+      melInst: 'flute', melOct: 12, melVol: 0.07,
+      mel: ['4 - 3 4 5 - 4 -', '3 - 2 - 1 - . .', '2 - 1 2 3 - 2 -', '6# - - - 4 - . .',
+            '7 - 6# 7 8 - 7 -', '6 - 5 - 4 - . .', '5 - 4 - 3 - 2 -', '1 - 6# - 0 - . .'],
+      perc: [{ i: 'timp', p: 'x.......', lvl: 0, v: 0.08 }, { i: 'shaker', p: '..x..x..', lvl: 1, v: 0.025 }, { i: 'kick', p: 'x..x..x.', lvl: 2, v: 0.1 }],
+      fx: 'shimmer',
+    },
+    // 10. Trůn hlubin – epická, c moll, žestě a tympány
+    abyss: {
+      key: 60, mode: 'minor', step: 0.3, steps: 8, cutoff: 4200, rev: 0.5,
+      chords: [[0, 3, 7], [-4, 0, 3], [-2, 2, 5], [7, 11, 14]],
+      bass: 'R..RR.5.', arp: [0, 1, 2, 3, 2, 1, 2, 1], arpInst: 'harp', arpVol: 0.04, pad: 0.03,
+      melInst: 'brass', melOct: 0, melVol: 0.06,
+      mel: ['0 - - 2 4 - - -', '5 - 4 - 2 - . .', '6 - - 5 4 - 2 -', '6# - - - - - . .',
+            '7 - - 6 7 - 4 -', '5 - - 4 5 - 2 -', '4 - 2 - 1 - 6# -', '0 - - - - - . .'],
+      perc: [{ i: 'timp', p: 'x.......', lvl: 0, v: 0.13 }, { i: 'shaker', p: '..x...x.', lvl: 1, v: 0.025 }, { i: 'timp', p: 'x..x..x.', lvl: 2, v: 0.1 }],
+      fx: 'drips',
+    },
+    // boss – napjaté ostinato pro souboj se žralokem (a moll)
+    boss: {
+      key: 57, mode: 'harm', step: 0.2, steps: 8, cutoff: 3600, rev: 0.3,
+      chords: [[0, 3, 7], [0, 3, 7], [-4, 0, 3], [-1, 2, 5]],
+      bass: 'R.R.R.R.', stab: '...x...x', arp: null, arpInst: 'harp', arpVol: 0.04, pad: 0.025,
+      melInst: 'brass', melOct: 12, melVol: 0.055,
+      mel: ['0 - 1 - 2 - 4 -', '3 - 2 - 1 - -1# -', '0 - 1 - 2 - 4 -', '5 - 4 - 6# - - -',
+            '7 - 6# - 5 - 4 -', '5 - 4 - 2 - 1 -', '2 - 1 - 0 - -1# -', '0 - - - . . . .'],
+      perc: [{ i: 'kick', p: 'x...x...', lvl: 0, v: 0.15 }, { i: 'timp', p: 'x.......', lvl: 0, v: 0.08 }, { i: 'shaker', p: 'x.x.x.x.', lvl: 1, v: 0.025 }],
+      fx: 'creak',
+    },
   };
-  const CHAPTER_THEMES = ['reef', 'cave', 'ship', 'garden', 'palace'];
+  const CHAPTER_THEMES = ['reef', 'cave', 'ship', 'garden', 'palace', 'ink', 'ice', 'vents', 'temple', 'abyss'];
   const FORM_BARS = 16;          // 4 takty úvod, 8 taktů melodie, 4 takty mezihra
 
   function parseMel(theme) {
@@ -138,7 +207,7 @@
     themeFor(screen) {
       const d = CD.Store && CD.Store.data;
       if (!d) return 'title';
-      if (screen === 'game' && CD.Game && CD.Game.def) return CHAPTER_THEMES[CD.Game.def.chapter] || 'reef';
+      if (screen === 'game' && CD.Game && CD.Game.def) return CD.Game.def.boss ? 'boss' : CHAPTER_THEMES[CD.Game.def.chapter] || 'reef';
       if (screen === 'home') return CHAPTER_THEMES[d.scene] || 'reef';
       if (screen === 'map') return CHAPTER_THEMES[Math.floor((Math.min(d.unlocked, CD.Levels.COUNT) - 1) / 10)] || 'reef';
       return 'title';

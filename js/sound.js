@@ -103,6 +103,16 @@
         case 'shuffle': for (let i = 0; i < 6; i++) this.noise(0.06, 0.07, i * 0.06, 2000 + i * 200); break;
         case 'wild': [660, 880, 1100, 1320, 1760].forEach((f, i) => this.tone(f, 0.18, 'sine', 0.1, i * 0.04)); break;
         case 'star': this.tone(1046.5 + arg * 262, 0.3, 'triangle', 0.16); break;
+        // překážky Hlubin
+        case 'splash': this.noise(0.35, 0.16, 0, 700); this.tone(420, 0.25, 'sine', 0.08, 0, 160); break;
+        case 'ice': this.tone(2600, 0.06, 'triangle', 0.08); this.noise(0.08, 0.1, 0, 5200); break;
+        case 'iceBreak': [2400, 3100, 1900, 2800, 3500].forEach((f, i) => this.tone(f, 0.12, 'triangle', 0.07, i * 0.035)); this.noise(0.3, 0.16, 0, 4500); break;
+        case 'bubHit': this.tone(500, 0.08, 'sine', 0.1, 0, 900); break;
+        case 'pop': for (let i = 0; i < Math.min(arg || 1, 3); i++) { this.tone(600, 0.09, 'sine', 0.16, i * 0.08, 1800); this.noise(0.04, 0.1, i * 0.08 + 0.05, 3000); } break;
+        case 'shell': [784, 988, 1319, 1568, 1976].forEach((f, i) => { this.tone(f, 0.4, 'sine', 0.09, i * 0.06); this.tone(f * 2.76, 0.2, 'sine', 0.02, i * 0.06); }); break;
+        case 'chomp': this.tone(95, 0.18, 'square', 0.12, 0, 60); this.noise(0.1, 0.2, 0, 600); this.tone(80, 0.15, 'square', 0.1, 0.16, 50); this.noise(0.1, 0.16, 0.16, 500); break;
+        case 'sticker': [1047, 1568, 2093].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.12, i * 0.08)); this.noise(0.15, 0.06, 0, 6000); break;
+        case 'trophy': [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.25, 'triangle', 0.13, i * 0.08)); break;
       }
     },
   };

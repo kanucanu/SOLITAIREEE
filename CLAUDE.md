@@ -6,10 +6,12 @@ Spuštění: `python3 -m http.server 8000` v tomto adresáři → http://localho
 ## Struktura
 - `index.html` – obrazovky (titul, domov/scéna, mapa, hra), SVG sprite ikon a barev karet
 - `css/style.css` – veškerý vzhled, animace, responzivita (iPad portrait/landscape, PC, mobil)
-- `js/levels.js` – ASCII rozložení karet + data 50 levelů (obtížnost)
+- `js/levels.js` – ASCII rozložení karet + data 100 levelů ve 2 světech, kapitoly, denní výzva
 - `js/engine.js` – čistá herní logika TriPeaks (bez DOM, testovatelná v Node.js)
 - `js/art.js` – SVG kreslící funkce (korály, ryby, želvička Tóňa…)
-- `js/scenes.js` – 5 dekoračních scén po 6 úkolech (meta-vrstva)
+- `js/art2.js` – SVG tvorové a dekorace světa Hlubiny
+- `js/scenes.js` – 10 dekoračních scén po 6 úkolech (meta-vrstva)
+- `js/meta.js` – denní výzva, nálepky, úspěchy, obyvatelé scén, 3★ výzva
 - `js/storage.js` – ukládání do localStorage (klíč `koraloveSny.save.v1`)
 - `js/sound.js` – zvukové efekty přes Web Audio API
 - `js/music.js` – generovaná hudba na pozadí (téma podle obrazovky/kapitoly, intenzita podle série)
@@ -20,7 +22,7 @@ Spuštění: `python3 -m http.server 8000` v tomto adresáři → http://localho
 - Hra je originální: žádné postavy, názvy ani grafika z existujících her (Disney apod.).
 - Texty ve hře jsou česky.
 - Ovládání musí fungovat dotykem (iPad, iOS 17) i myší.
-- Po změně `levels.js`/`engine.js` ověř řešitelnost testem (simulace všech 50 levelů).
+- Po změně `levels.js`/`engine.js` ověř řešitelnost testem `node tests/engine.test.js` (všech 100 levelů + denní výzvy).
 
 ## Pravidla pro správu kontextu
 - Kdykoliv je vyvolána akce zápisu stavu (např. před kompaktováním nebo na konci sezení), zapiš kompletní přehled do souboru `HANDOFF.md` v kořenovém adresáři.

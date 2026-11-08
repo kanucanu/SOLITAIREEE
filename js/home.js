@@ -16,6 +16,10 @@
     'Zkus nejdřív odkrývat karty, které jsou otočené rubem nahoru.',
     'Když se ti nedaří, žolík pasuje úplně na všechno.',
     'Hvězdičky navíc získáš i opakováním levelu s lepším výsledkem.',
+    'Každý den čeká nová Denní výzva. Splň ji několik dní po sobě a odměny rostou!',
+    'Klepni na obyvatele scény – rádi si povídají a jednou denně dají dárek.',
+    'Dohrané levely můžeš zkusit znovu jako Výzvu s omezeným počtem tahů.',
+    'Nálepky mořských tvorů padají z výher. Kompletní sada = velká odměna!',
   ];
 
   const H = {
@@ -30,21 +34,44 @@
       const d = CD.Store.data;
       if (d.tasks[d.scene] >= 6 && !d.chests[d.scene]) setTimeout(() => this.claimChest(), 500);
       else this.greet();
+      setTimeout(() => CD.Meta.checkAchievements(), 1200);   // i úspěchy splněné před aktualizací
     },
 
     render() {
       const d = CD.Store.data, idx = d.scene, sc = CD.Scenes.SCENES[idx];
-      $('#homeScene').innerHTML = CD.Scenes.render(idx, d.tasks[idx]);
+      $('#homeScene').innerHTML = CD.Scenes.render(idx, d.tasks[idx], { residents: true });
       this.svg = $('#homeScene svg');
+      this.bindResidents();
       this.fit();
       $('#homeTitle').innerHTML = `<small>Scéna ${idx + 1}</small>${sc.name}`;
       this.updateHud();
     },
     fit() { CD.Scenes.fit(this.svg, innerWidth, innerHeight); },
 
+    /* obyvatelé scény – klepnutí = řeč a jednou denně dárek */
+    bindResidents() {
+      const idx = CD.Store.data.scene;
+      this.svg.querySelectorAll('.res').forEach(g => g.addEventListener('click', e => {
+        e.stopPropagation();
+        CD.Meta.tapResident(idx, +g.dataset.res, g);
+      }));
+    },
+    refreshResidents(newcomer) {
+      const d = CD.Store.data, idx = d.scene, layer = this.svg && this.svg.querySelector('.res-layer');
+      if (!layer) return;
+      const u = (this.svg.querySelector('defs linearGradient') || { id: 'sc0-water' }).id.replace('-water', '');
+      layer.innerHTML = CD.Meta.residentsSVG(idx, d.tasks[idx], u);
+      this.bindResidents();
+      if (newcomer) {
+        const g = layer.querySelector(`[data-res="${newcomer.k}"]`);
+        if (g) g.classList.add('res-new');
+        setTimeout(() => this.say(`${newcomer.name} se přistěhoval(a)! Klepni na mě a pozdravím tě.`, 5000), 2600);
+      }
+    },
+
     nextLevel() {
       const d = CD.Store.data;
-      if (d.run && d.run.level) return d.run.level;
+      if (d.run && d.run.level && d.run.state && !d.run.state.mode) return d.run.level;   // jen běžný rozehraný level
       return d.unlocked;
     },
 
@@ -54,7 +81,9 @@
       CD.UI.updateWallet();
       $('#tasksBtn').innerHTML = `<div class="tb-ico">${CD.Art.chestIcon()}</div><div class="tb-txt"><b>Úkoly</b><div class="tb-bar"><i style="width:${(done / 6) * 100}%"></i><span>${done}/6</span></div></div>${next && d.stars >= next.cost ? '<span class="badge-red">!</span>' : ''}`;
       const lvl = this.nextLevel();
-      $('#playBtn').innerHTML = lvl > CD.Levels.COUNT ? `<span>Vše</span><b>hotovo</b>` : `<span>${d.run && d.run.level ? 'Pokračovat' : 'Level'}</span><b>${lvl}</b>`;
+      $('#playBtn').innerHTML = lvl > CD.Levels.COUNT ? `<span>Vše</span><b>hotovo</b>` : `<span>${d.run && d.run.level === lvl ? 'Pokračovat' : 'Level'}</span><b>${lvl}</b>`;
+      $('#dailyBtn').classList.toggle('ready', !CD.Meta.dailyDone());
+      $('#dailyBtn').innerHTML = `<span class="emo">📅</span><span>Výzva</span>${CD.Meta.dailyDone() ? '' : '<span class="badge-red">!</span>'}`;
       this.updateBonus();
     },
 
@@ -143,6 +172,9 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
       CD.Scenes.reveal(this.svg, i);
       this.say(t.line, 5000);
       this.updateHud();
+      const ri = (CD.Meta.RES[idx] || []).findIndex(r => r.at === d.tasks[idx]);
+      if (ri >= 0) setTimeout(() => this.refreshResidents({ k: ri, name: CD.Meta.RES[idx][ri].name }), 1400);
+      setTimeout(() => CD.Meta.checkAchievements(), 2000);
       if (d.tasks[idx] >= 6) setTimeout(() => this.claimChest(), 2200);
     },
 
@@ -159,12 +191,15 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
   <div class="rw">${CD.UI.icon('wild')}<b>+${ch.wild}</b></div>
   <div class="rw">${CD.UI.icon('undo')}<b>+${ch.undo}</b></div>
   <div class="rw">${CD.UI.icon('shuffle')}<b>+${ch.shuffle}</b></div>
+  <div class="rw"><span class="stk">📒</span><b>+2</b></div>
 </div>
 <div class="m-btns"><button class="btn btn-green" data-ok>Vyzvednout</button></div>` });
       m.el.querySelector('[data-ok]').addEventListener('click', () => {
         d.coins += ch.coins;
         d.boosters.wild += ch.wild; d.boosters.undo += ch.undo; d.boosters.shuffle += ch.shuffle;
         d.chests[idx] = true;
+        const s1 = CD.Meta.giveSticker(), s2 = CD.Meta.giveSticker();
+        CD.UI.toast(`Nálepky z truhly: ${s1.short.replace(/<[^>]+>/g, '')} ${s2.short.replace(/<[^>]+>/g, '')}`, 3500);
         const last = idx >= CD.Scenes.COUNT - 1;
         if (!last) d.scene = idx + 1;
         CD.Store.save();
@@ -172,11 +207,12 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
         m.close(true);
         if (last) {
           this.updateHud();
-          CD.UI.modal({ title: 'Gratulujeme!', html: `<p class="m-text big">Opravil(a) jsi celé podmořské království! 🐢💙</p><p class="m-text">Můžeš dál hrát levely a sbírat 3 hvězdičky všude, nebo si prohlédnout všechny scény v albu.</p>` });
+          CD.UI.modal({ title: 'Gratulujeme!', html: `<p class="m-text big">Opravil(a) jsi celé podmořské království i Hlubiny! 🐢💙🦈</p><p class="m-text">Můžeš dál hrát levely, sbírat 3 hvězdičky, plnit denní výzvy a výzvy na tahy.</p>` });
         } else {
           $('#homeScene').classList.add('fade');
-          setTimeout(() => { this.render(); $('#homeScene').classList.remove('fade'); this.greet(); }, 450);
+          setTimeout(() => { this.render(); $('#homeScene').classList.remove('fade'); this.greet(); CD.Music.forScreen('home'); }, 450);
         }
+        setTimeout(() => CD.Meta.checkAchievements(), 1500);
       });
     },
 
@@ -188,7 +224,7 @@ ${next && d.stars < next.cost ? `<div class="m-btns"><button class="btn btn-gree
         const open = i <= d.scene;
         return `<button class="alb ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>
 <div class="alb-thumb">${open ? CD.Scenes.render(i, d.tasks[i], { noFront: true, cls: 'thumb' }) : `<div class="alb-lock">${CD.UI.icon('lock')}</div>`}${d.chests[i] ? `<div class="alb-done">${CD.UI.icon('check')}</div>` : ''}</div>
-<div class="alb-name">${i + 1}. ${open ? sc.name : '???'}</div>
+<div class="alb-name">${i + 1}. ${open ? sc.name : '???'}${i === 5 ? ' <small>· Hlubiny</small>' : ''}</div>
 <div class="alb-bar"><i style="width:${d.tasks[i] / 6 * 100}%"></i><span>${d.tasks[i]}/6</span></div></button>`;
       }).join('');
       const m = CD.UI.modal({ title: 'Album scén', cls: 'm-album', html: `<div class="alb-grid">${cards}</div>` });

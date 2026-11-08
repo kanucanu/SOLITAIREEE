@@ -15,6 +15,11 @@
      slack  – rezervní karty v balíčku navíc (víc = snazší, určuje hvězdy)
      locks  – počet zámků (karta se zámkem se uvolní po odehrání klíče)
      coins  – počet karet s bonusovou mincí (+25)
+     ink    – karty pod inkoustem (vyčistí je zahraná sousední karta)
+     ice    – zamrzlé karty (dvakrát zahrát sousední kartu)
+     bub    – karty v bublině (prasknou po zahrání 2 karet dané barvy ♥♦ / ♠♣)
+     shell  – perlové mušle (otevřou se při sérii 5, bonus +40)
+     boss   – žralok: po každém 3. líznutí sežere kartu z balíčku
    ========================================================================= */
 (function (root) {
   'use strict';
@@ -171,9 +176,86 @@
       ' x x x x x x x x',
       'x x x x x x x x x',
       ' x x x x x x x x'] },
+    /* ----- svět 2: Hlubiny ----- */
+    propast: { name: 'Propast', rows: [
+      'x x x x x x x x x x x',
+      ' x x x x x x x x x x',
+      '  x x x x x x x x x',
+      '   x x x     x x x',
+      '    x x       x x'] },
+
+    chobotnice: { name: 'Chobotnice', rows: [
+      '    x x x x',
+      '   x x x x x',
+      '  x x x x x x',
+      '   x x x x x',
+      '  x  x x x  x',
+      ' x   x   x   x',
+      'x   x     x   x'] },
+
+    krystal: { name: 'Ledový krystal', rows: [
+      '      x',
+      '   x  x  x',
+      '    x x x',
+      'x x x x x x x',
+      ' x x x x x x',
+      '    x x x',
+      '   x  x  x',
+      '      x'] },
+
+    iglu: { name: 'Iglú', rows: [
+      '     x x x',
+      '   x x x x x',
+      '  x x x x x x',
+      ' x x x x x x x',
+      'x x x     x x x',
+      'x x x     x x x'] },
+
+    bublinky: { name: 'Bublinky', rows: [
+      '  x x       x x',
+      ' x   x  x  x   x',
+      '  x x  x x  x x',
+      '      x   x',
+      '  x x  x x  x x',
+      ' x   x  x  x   x',
+      '  x x       x x'] },
+
+    chram: { name: 'Chrám', rows: [
+      'x x x x x x x x x',
+      ' x x x x x x x x',
+      'x   x   x   x   x',
+      'x   x   x   x   x',
+      'x   x   x   x   x',
+      'x x x x x x x x x'] },
+
+    musle: { name: 'Mušle', rows: [
+      'x   x   x   x   x',
+      ' x  x   x   x  x',
+      '  x  x  x  x  x',
+      '   x  x x x  x',
+      '    x x x x x',
+      '     x x x x',
+      '      x x x'] },
+
+    zralok: { name: 'Žralok', rows: [
+      '        x',
+      '       x x',
+      'x     x x x x',
+      'x x x x x x x x x x',
+      ' x x x x x x x x x x x',
+      'x x   x x x x x x',
+      'x       x   x'] },
+
+    trun: { name: 'Trůn hlubin', rows: [
+      'x   x x x x x   x',
+      'x  x x x x x x  x',
+      'x x x x x x x x x',
+      'x x x x x x x x x',
+      ' x x x x x x x x',
+      'x x x x x x x x x'] },
   };
 
-  /* 50 levelů s postupně rostoucí obtížností */
+  /* 100 levelů s postupně rostoucí obtížností */
   const LEVELS = [
     /*  1 */ { layout: 'vlnky',     open: true,  run: 7.0, slack: 8, locks: 0, coins: 0 },
     /*  2 */ { layout: 'pyramida',  open: true,  run: 6.5, slack: 8, locks: 0, coins: 1 },
@@ -225,9 +307,68 @@
     /* 48 */ { layout: 'palac',     open: false, run: 3.0, slack: 4, locks: 3, coins: 4 },
     /* 49 */ { layout: 'trojvrch2', open: false, run: 2.9, slack: 3, locks: 3, coins: 5 },
     /* 50 */ { layout: 'palac',     open: false, run: 2.8, slack: 3, locks: 3, coins: 5 },
+    /* ---------- svět 2: Hlubiny ---------- */
+    /* kapitola 6 – Inkoustový les: inkoust */
+    /* 51 */ { layout: 'chobotnice', open: false, run: 3.6, slack: 5, locks: 0, coins: 3, ink: 3 },
+    /* 52 */ { layout: 'propast',    open: false, run: 3.5, slack: 5, locks: 1, coins: 3, ink: 3 },
+    /* 53 */ { layout: 'ryba',       open: false, run: 3.4, slack: 4, locks: 1, coins: 3, ink: 4 },
+    /* 54 */ { layout: 'chobotnice', open: false, run: 3.3, slack: 4, locks: 1, coins: 3, ink: 5 },
+    /* 55 */ { layout: 'koruna',     open: false, run: 3.3, slack: 4, locks: 2, coins: 4, ink: 5 },
+    /* 56 */ { layout: 'iglu',    open: false, run: 3.0, slack: 3, locks: 1, coins: 4, ink: 6 },
+    /* 57 */ { layout: 'kruh2',      open: false, run: 3.2, slack: 4, locks: 2, coins: 4, ink: 6 },
+    /* 58 */ { layout: 'chobotnice', open: false, run: 3.1, slack: 3, locks: 2, coins: 4, ink: 7 },
+    /* 59 */ { layout: 'trojvrch2',  open: false, run: 3.1, slack: 4, locks: 2, coins: 4, ink: 7 },
+    /* 60 */ { layout: 'zralok',     open: false, run: 3.2, slack: 6, locks: 1, coins: 5, ink: 5, boss: true },
+    /* kapitola 7 – Ledová jeskyně: led */
+    /* 61 */ { layout: 'krystal',    open: false, run: 3.4, slack: 5, locks: 0, coins: 3, ice: 2, ink: 1 },
+    /* 62 */ { layout: 'iglu',       open: false, run: 3.3, slack: 4, locks: 1, coins: 3, ice: 3, ink: 1 },
+    /* 63 */ { layout: 'krystal',    open: false, run: 3.2, slack: 4, locks: 1, coins: 3, ice: 3, ink: 2 },
+    /* 64 */ { layout: 'zed2',       open: false, run: 3.2, slack: 4, locks: 1, coins: 4, ice: 4, ink: 2 },
+    /* 65 */ { layout: 'iglu',       open: false, run: 3.1, slack: 4, locks: 2, coins: 4, ice: 4, ink: 2 },
+    /* 66 */ { layout: 'diamanty3',  open: false, run: 2.7, slack: 3, locks: 2, coins: 4, ice: 5, ink: 2 },
+    /* 67 */ { layout: 'krystal',    open: false, run: 2.8, slack: 3, locks: 1, coins: 4, ice: 5, ink: 3 },
+    /* 68 */ { layout: 'propast',    open: false, run: 2.8, slack: 3, locks: 2, coins: 4, ice: 5, ink: 3 },
+    /* 69 */ { layout: 'iglu',       open: false, run: 2.9, slack: 3, locks: 2, coins: 4, ice: 6, ink: 3 },
+    /* 70 */ { layout: 'zralok',     open: false, run: 3.0, slack: 6, locks: 2, coins: 5, ice: 4, ink: 3, boss: true },
+    /* kapitola 8 – Bublinková pole: bubliny */
+    /* 71 */ { layout: 'bublinky',   open: false, run: 3.3, slack: 5, locks: 0, coins: 3, bub: 2, ice: 1 },
+    /* 72 */ { layout: 'bublinky',   open: false, run: 3.2, slack: 4, locks: 1, coins: 3, bub: 2, ice: 2 },
+    /* 73 */ { layout: 'medusa',     open: false, run: 3.1, slack: 4, locks: 1, coins: 4, bub: 3, ink: 2 },
+    /* 74 */ { layout: 'ctyrvrch2',  open: false, run: 3.1, slack: 4, locks: 2, coins: 4, bub: 3, ice: 2 },
+    /* 75 */ { layout: 'bublinky',   open: false, run: 2.6, slack: 3, locks: 1, coins: 4, bub: 3, ink: 2, ice: 1 },
+    /* 76 */ { layout: 'chobotnice', open: false, run: 3.0, slack: 4, locks: 2, coins: 4, bub: 4, ice: 2 },
+    /* 77 */ { layout: 'iglu',       open: false, run: 2.9, slack: 3, locks: 2, coins: 4, bub: 4, ink: 3 },
+    /* 78 */ { layout: 'bublinky',   open: false, run: 2.9, slack: 4, locks: 2, coins: 4, bub: 4, ice: 3 },
+    /* 79 */ { layout: 'palac',      open: false, run: 2.8, slack: 3, locks: 2, coins: 5, bub: 4, ink: 3, ice: 2 },
+    /* 80 */ { layout: 'zralok',     open: false, run: 2.9, slack: 6, locks: 2, coins: 5, bub: 3, ink: 3, ice: 2, boss: true },
+    /* kapitola 9 – Perlový chrám: mušle */
+    /* 81 */ { layout: 'chram',      open: false, run: 3.2, slack: 5, locks: 1, coins: 3, shell: 1, ink: 2 },
+    /* 82 */ { layout: 'musle',      open: false, run: 2.9, slack: 3, locks: 1, coins: 3, shell: 1, ice: 2 },
+    /* 83 */ { layout: 'chram',      open: false, run: 2.8, slack: 4, locks: 2, coins: 4, shell: 2, bub: 2 },
+    /* 84 */ { layout: 'musle',      open: false, run: 3.0, slack: 4, locks: 1, coins: 4, shell: 2, ink: 3, ice: 1 },
+    /* 85 */ { layout: 'trojvrch2',  open: false, run: 2.9, slack: 4, locks: 2, coins: 4, shell: 2, bub: 2, ice: 2 },
+    /* 86 */ { layout: 'chram',      open: false, run: 2.7, slack: 3, locks: 2, coins: 4, shell: 2, ink: 3, bub: 2 },
+    /* 87 */ { layout: 'musle',      open: false, run: 2.8, slack: 3, locks: 2, coins: 4, shell: 3, ice: 3 },
+    /* 88 */ { layout: 'propast',    open: false, run: 2.8, slack: 4, locks: 2, coins: 5, shell: 2, ink: 3, ice: 2, bub: 2 },
+    /* 89 */ { layout: 'chram',      open: false, run: 2.7, slack: 3, locks: 3, coins: 5, shell: 3, bub: 3, ice: 2 },
+    /* 90 */ { layout: 'zralok',     open: false, run: 2.6, slack: 5, locks: 2, coins: 5, shell: 2, ink: 3, ice: 2, bub: 2, boss: true },
+    /* kapitola 10 – Trůn hlubin: všechno dohromady */
+    /* 91 */ { layout: 'trun',       open: false, run: 3.0, slack: 4, locks: 2, coins: 4, ink: 3, ice: 2, bub: 2, shell: 1 },
+    /* 92 */ { layout: 'chobotnice', open: false, run: 2.9, slack: 3, locks: 2, coins: 4, ink: 4, ice: 3, bub: 2 },
+    /* 93 */ { layout: 'trun',       open: false, run: 2.9, slack: 4, locks: 2, coins: 5, ink: 3, ice: 3, bub: 3, shell: 1 },
+    /* 94 */ { layout: 'krystal',    open: false, run: 2.8, slack: 3, locks: 2, coins: 4, ice: 4, bub: 2, shell: 1 },
+    /* 95 */ { layout: 'palac',      open: false, run: 2.8, slack: 3, locks: 3, coins: 5, ink: 4, ice: 3, bub: 3, shell: 2 },
+    /* 96 */ { layout: 'trun',       open: false, run: 2.7, slack: 3, locks: 3, coins: 5, ink: 4, ice: 3, bub: 3, shell: 2 },
+    /* 97 */ { layout: 'chram',   open: false, run: 2.6, slack: 3, locks: 2, coins: 5, ink: 3, ice: 3, bub: 4, shell: 1 },
+    /* 98 */ { layout: 'musle',      open: false, run: 2.6, slack: 3, locks: 3, coins: 5, ink: 4, ice: 3, bub: 3, shell: 2 },
+    /* 99 */ { layout: 'trun',       open: false, run: 2.6, slack: 3, locks: 3, coins: 5, ink: 5, ice: 4, bub: 3, shell: 2 },
+    /*100 */ { layout: 'trun',       open: false, run: 2.5, slack: 5, locks: 3, coins: 6, ink: 5, ice: 4, bub: 4, shell: 2, boss: true },
   ];
 
-  const CHAPTERS = ['Korálový útes', 'Perlová jeskyně', 'Potopená loď', 'Zahrada sasanek', 'Palác vln'];
+  const CHAPTERS = ['Korálový útes', 'Perlová jeskyně', 'Potopená loď', 'Zahrada sasanek', 'Palác vln',
+    'Inkoustový les', 'Ledová jeskyně', 'Bublinková pole', 'Perlový chrám', 'Trůn hlubin'];
+  const WORLDS = [{ name: 'Korálové sny', from: 1, to: 50 }, { name: 'Hlubiny', from: 51, to: 100 }];
+  const DAILY_BASE = 10000;          // čísla levelů od 10000 = denní výzvy (10000 + číslo dne)
 
   /* Převod ASCII rozložení na sloty se vztahy překrytí */
   function parse(rows) {
@@ -240,6 +381,8 @@
     slots.forEach((s, i) => slots.forEach((t, j) => {
       if (t.y - s.y === 1 && Math.abs(t.x - s.x) < 2) { s.coveredBy.push(j); t.covers.push(i); }
     }));
+    // sousedé (pro inkoust a led): karty, které se dotýkají nebo překrývají
+    slots.forEach((s, i) => { s.nb = []; slots.forEach((t, j) => { if (i !== j && Math.abs(t.x - s.x) <= 2 && Math.abs(t.y - s.y) <= 2) s.nb.push(j); }); });
     return {
       slots,
       maxX: Math.max(...slots.map(s => s.x)),
@@ -248,9 +391,20 @@
   }
 
   const cache = {};
+  /* denní výzva: level vygenerovaný z čísla dne – každý den jiný, pro všechny stejný */
+  const DAILY_LAYOUTS = ['trojvrch', 'ryba', 'koruna', 'kruh2', 'medusa', 'srdce', 'chobotnice', 'iglu', 'bublinky', 'musle', 'chram', 'propast', 'diamanty3', 'ctyrvrch2'];
+  function dailyDef(day) {
+    let a = (day * 2654435761) >>> 0;
+    const R = () => ((a = (a * 1103515245 + 12345) >>> 0) / 4294967296);
+    const d = { layout: DAILY_LAYOUTS[Math.floor(R() * DAILY_LAYOUTS.length)], open: false, run: 3.4, slack: 4, locks: Math.floor(R() * 2) + 1, coins: 4 };
+    const types = ['ink', 'ice', 'bub', 'shell'].sort(() => R() - 0.5).slice(0, 2);
+    types.forEach(t => { d[t] = t === 'shell' ? 1 : 2 + Math.floor(R() * 2); });
+    return d;
+  }
   function get(n) {
     if (cache[n]) return cache[n];
-    const d = LEVELS[n - 1];
+    const daily = n >= DAILY_BASE;
+    const d = daily ? dailyDef(n - DAILY_BASE) : LEVELS[n - 1];
     if (!d) return null;
     const L = LAYOUTS[d.layout];
     const lay = parse(L.rows);
@@ -259,11 +413,13 @@
     const t2 = Math.max(1, Math.ceil(d.slack * 0.35));          // zbylé karty pro 2 hvězdy
     const t3 = Math.max(t2 + 1, Math.ceil(d.slack * 0.75));     // zbylé karty pro 3 hvězdy
     cache[n] = Object.assign({}, d, {
-      n, lay, name: L.name, N, D, stockSize: D + d.slack, t2, t3,
-      chapter: Math.floor((n - 1) / 10),
+      n, lay, name: L.name, N, D, stockSize: D + d.slack, t2, t3, daily,
+      chapter: daily ? (n - DAILY_BASE) % CHAPTERS.length : Math.floor((n - 1) / 10),
+      world: daily ? 0 : n > 50 ? 1 : 0,
     });
     return cache[n];
   }
+  const dayNumber = (t = Date.now()) => Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 86400000);
 
-  CD.Levels = { LAYOUTS, LEVELS, CHAPTERS, COUNT: LEVELS.length, get, parse };
+  CD.Levels = { LAYOUTS, LEVELS, CHAPTERS, WORLDS, DAILY_BASE, COUNT: LEVELS.length, get, parse, dayNumber };
 })(typeof window !== 'undefined' ? window : globalThis);

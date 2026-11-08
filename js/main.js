@@ -49,6 +49,9 @@
       $('#tasksBtn').addEventListener('click', () => CD.Home.openTasks());
       $('#playBtn').addEventListener('click', () => CD.Home.play());
       $('#bonusBtn').addEventListener('click', () => CD.Home.bonus());
+      $('#dailyBtn').addEventListener('click', () => CD.Meta.openDaily());
+      $('#stickersBtn').addEventListener('click', () => CD.Meta.openStickers());
+      $('#achBtn').addEventListener('click', () => CD.Meta.openAchievements());
       $('#homeGuide').addEventListener('click', () => CD.Home.tapGuide());
       $('#stock').addEventListener('pointerdown', e => { e.preventDefault(); CD.Game.tapStock(); });
       $('#gHome').addEventListener('click', () => CD.Game.leave());

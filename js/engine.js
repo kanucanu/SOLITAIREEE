@@ -41,13 +41,25 @@
     return runs;
   }
 
-  /* ---------- nové rozdání ---------- */
-  function newGame(level, seed) {
-    const def = CD.Levels.get(level);
-    const lay = def.lay;
-    const N = lay.slots.length;
+  /* ---------- nové rozdání ----------
+     Řešení se "odehraje" skutečnými pravidly (play/draw) na prázdném stole a hodnoty karet
+     se přidělují za běhu. Díky tomu platí zaručená řešitelnost i pro všechny překážky
+     (inkoust, led, bubliny, mušle) a pro žraloka v boss levelech. */
+  const BOSS_EVERY = 3;               // žralok sežere kartu po každém 3. líznutí
+  const OBST = ['ink', 'ice', 'bub', 'shell'];
+
+  function blank(def, level, seed) {
+    return {
+      level, seed, cards: def.lay.slots.map(() => ({ r: 0, s: 0, up: false, gone: false, lock: 0, key: 0, coin: false, ink: false, ice: 0, bub: 0, bn: 0, shell: 0 })),
+      stock: [], si: 1, waste: [], opened: [], streak: 0, maxStreak: 0, coinsWon: 0, plus: 0, moves: 0,
+      draws: 0, eaten: 0, lastEaten: null, obst: 0, boss: !!def.boss, sol: [],
+    };
+  }
+
+  function generate(level, seed, scale) {
+    const def = CD.Levels.get(level), lay = def.lay, N = lay.slots.length;
     const R = mulberry32(seed);
-    const cards = lay.slots.map(() => ({ r: 0, s: 0, up: false, gone: false, lock: 0, key: 0, coin: false }));
+    const st = blank(def, level, seed), cards = st.cards;
 
     // zámky (na zakrytých kartách v horní části) a klíče (na volných kartách)
     const free0 = [], covered = [];
@@ -64,46 +76,19 @@
     // bonusové mince
     const coinPool = cards.map((_, i) => i).filter(i => !cards[i].lock && !cards[i].key);
     for (let k = 0; k < def.coins && coinPool.length; k++) cards[coinPool.splice(pickIdx(R, coinPool), 1)[0]].coin = true;
-
-    // simulace řešení: série karet ±1, mezi sériemi líznutí z balíčku
-    const gone = new Array(N).fill(false);
-    const opened = [];
-    const avail = () => {
-      const out = [];
-      for (let i = 0; i < N; i++) {
-        if (gone[i]) continue;
-        if (cards[i].lock && !opened.includes(cards[i].lock)) continue;
-        if (lay.slots[i].coveredBy.every(j => gone[j])) out.push(i);
+    // překážky Hlubin
+    const oPool = cards.map((_, i) => i).filter(i => !cards[i].lock && !cards[i].key);
+    OBST.forEach(type => {
+      const n = Math.round((def[type] || 0) * scale);
+      for (let k = 0; k < n && oPool.length; k++) {
+        const i = oPool.splice(pickIdx(R, oPool), 1)[0], c = cards[i];
+        if (type === 'ink') c.ink = true;
+        else if (type === 'ice') c.ice = 2;
+        else if (type === 'bub') { c.bub = R() < 0.5 ? 1 : 2; c.bn = 2; }
+        else c.shell = 1;
       }
-      return out;
-    };
-    const runs = splitRuns(N, def.D, R);
-    const stockR = [];
-    const sol = [];
-    let v = 1 + Math.floor(R() * 13);
-    let dir = R() < 0.5 ? 1 : -1;
-    stockR.push(v);
-    for (let r = 0; r < runs.length; r++) {
-      if (r > 0) {
-        let nv;
-        do { nv = 1 + Math.floor(R() * 13); } while (nv === v || adjacent(nv, v));
-        v = nv;
-        stockR.push(v);
-        sol.push(-1); // -1 = líznout
-      }
-      for (let k = 0; k < runs[r]; k++) {
-        const a = avail();
-        if (!a.length) break;
-        const i = a[pickIdx(R, a)];
-        if (R() < 0.3) dir = -dir;
-        v = wrap(v + dir);
-        cards[i].r = v;
-        gone[i] = true;
-        if (cards[i].key) opened.push(cards[i].key);
-        sol.push(i);
-      }
-    }
-    for (let k = 0; k < def.slack; k++) stockR.push(1 + Math.floor(R() * 13));
+    });
+    const orig = cards.map(c => ({ ink: c.ink, ice: c.ice, bn: c.bn, shell: c.shell }));
 
     // barvy – rovnoměrně, ať se moc neopakují stejné karty
     const used = {};
@@ -117,14 +102,62 @@
       used[r * 4 + best] = (used[r * 4 + best] || 0) + 1;
       return best;
     };
-    cards.forEach(c => { c.s = suitFor(c.r); });
-    const stock = stockR.map(r => ({ r, s: suitFor(r) }));
-    cards.forEach((c, i) => { c.up = def.open || lay.slots[i].coveredBy.length === 0; });
+    const rnd = () => 1 + Math.floor(R() * 13);
+    const pushStock = r => st.stock.push({ r, s: suitFor(r) });
 
-    return {
-      level, seed, cards, stock, si: 1, waste: [stock[0]], opened: [],
-      streak: 0, maxStreak: 0, coinsWon: 0, plus: 0, moves: 0, sol,
-    };
+    // simulace řešení: série karet ±1, mezi sériemi líznutí
+    const runs = splitRuns(N, def.D, R);
+    if (def.shell && scale > 0) {                   // mušle se otevře až při sérii 5 → aspoň jedna dlouhá série
+      let mi = 0; runs.forEach((v, i) => { if (v > runs[mi]) mi = i; });
+      for (let i = 0; i < runs.length && runs[mi] < 7; i++) while (i !== mi && runs[i] > 1 && runs[mi] < 7) { runs[i]--; runs[mi]++; }
+    }
+    let v = rnd(), dir = R() < 0.5 ? 1 : -1;
+    pushStock(v);
+    st.waste = [st.stock[0]];
+    const left = () => cards.some(c => !c.gone);
+    for (let r = 0; left() && r < runs.length + N; r++) {
+      if (r > 0) {
+        let nv;
+        do { nv = rnd(); } while (nv === v || adjacent(nv, v));
+        v = nv;
+        pushStock(v);
+        if (st.boss && (st.draws + 1) % BOSS_EVERY === 0) pushStock(rnd());   // návnada pro žraloka
+        draw(st);
+        st.sol.push(-1);
+      }
+      const len = r < runs.length - 1 ? runs[r] : N;   // poslední série dohraje, co jde
+      for (let k = 0; k < len; k++) {
+        const a = [];
+        for (let i = 0; i < N; i++) if (!cards[i].gone && isFree(st, i) && !isLocked(st, i)) a.push(i);
+        if (!a.length) break;                          // zaseklo se (překážka) → líznout a pokračovat
+        const i = a[pickIdx(R, a)];
+        if (R() < 0.3) dir = -dir;
+        v = wrap(v + dir);
+        cards[i].r = v; cards[i].s = suitFor(v);
+        play(st, i);
+        st.sol.push(i);
+      }
+    }
+    if (!cards.every(c => c.gone)) return null;
+    for (let k = 0; k < def.slack; k++) pushStock(rnd());
+
+    // vrátit stůl do výchozího stavu
+    cards.forEach((c, i) => {
+      Object.assign(c, orig[i]);
+      c.gone = false;
+      c.up = def.open || lay.slots[i].coveredBy.length === 0;
+    });
+    Object.assign(st, { si: 1, waste: [st.stock[0]], opened: [], streak: 0, maxStreak: 0, coinsWon: 0, moves: 0, draws: 0, eaten: 0, lastEaten: null, obst: 0 });
+    return st;
+  }
+
+  function newGame(level, seed) {
+    // když se rozdání s překážkami nepovede, zkusí se jiné; v nouzi s méně překážkami
+    for (let a = 0; a < 80; a++) {
+      const st = generate(level, (seed + a * 7919) >>> 0, a < 40 ? 1 : a < 60 ? 0.5 : 0);
+      if (st) { st.seed = seed; st.gen = a; return st; }
+    }
+    throw new Error('Nepodařilo se rozdat level ' + level);
   }
 
   /* ---------- dotazy ---------- */
@@ -133,7 +166,17 @@
     if (st.cards[i].gone) return false;
     return layOf(st).slots[i].coveredBy.every(j => st.cards[j].gone);
   }
-  function isLocked(st, i) { const c = st.cards[i]; return !!c.lock && !st.opened.includes(c.lock); }
+  /* proč kartu nejde zahrát (i když je odkrytá): '' = nic ji neblokuje */
+  function blockReason(st, i) {
+    const c = st.cards[i];
+    if (c.lock && !st.opened.includes(c.lock)) return 'lock';
+    if (c.ink) return 'ink';
+    if (c.ice > 0) return 'ice';
+    if (c.bub && c.bn > 0) return 'bub';
+    if (c.shell === 1) return 'shell';
+    return '';
+  }
+  function isLocked(st, i) { return blockReason(st, i) !== ''; }
   function top(st) { return st.waste[st.waste.length - 1]; }
   function canPlay(st, i) {
     if (!isFree(st, i) || isLocked(st, i)) return false;
@@ -142,7 +185,8 @@
   }
   function playable(st) { const out = []; for (let i = 0; i < st.cards.length; i++) if (canPlay(st, i)) out.push(i); return out; }
   function stockLeft(st) { return st.stock.length - st.si; }
-  function hasMoves(st) { return stockLeft(st) > 0 || playable(st).length > 0; }
+  function limitReached(st) { return !!st.limit && st.moves >= st.limit; }
+  function hasMoves(st) { return !limitReached(st) && (stockLeft(st) > 0 || playable(st).length > 0); }
   function isWon(st) { return st.cards.every(c => c.gone); }
   function remaining(st) { return st.cards.filter(c => !c.gone).length; }
 
@@ -161,9 +205,26 @@
     st.coinsWon += coin + bonus;
     let opened = 0;
     if (c.key) { st.opened.push(c.key); opened = c.key; }
+    // překážky: inkoust a led reagují na sousední kartu, bubliny na barvu, mušle na sérii 5
+    const fx = { inkCleared: [], iceHit: [], iceFreed: [], bubHit: [], bubPopped: [], shellsOpened: [], pearl: !!c.shell };
+    if (c.shell) coin += 40;
+    layOf(st).slots[i].nb.forEach(j => {
+      const d = st.cards[j];
+      if (d.gone) return;
+      if (d.ink) { d.ink = false; fx.inkCleared.push(j); st.obst = (st.obst || 0) + 1; }
+      if (d.ice > 0) { d.ice--; fx.iceHit.push(j); if (!d.ice) { fx.iceFreed.push(j); st.obst = (st.obst || 0) + 1; } }
+    });
+    const col = c.s < 2 ? 1 : 2;
+    st.cards.forEach((d, j) => {
+      if (d.gone || d.bub !== col || d.bn <= 0) return;
+      d.bn--; fx.bubHit.push(j);
+      if (!d.bn) { fx.bubPopped.push(j); st.obst = (st.obst || 0) + 1; }
+    });
+    if (st.streak >= 5) st.cards.forEach((d, j) => { if (!d.gone && d.shell === 1) { d.shell = 2; fx.shellsOpened.push(j); st.obst = (st.obst || 0) + 1; } });
+    st.coinsWon += c.shell ? 40 : 0;
     const flipped = [];
     st.cards.forEach((d, j) => { if (!d.gone && !d.up && isFree(st, j)) { d.up = true; flipped.push(j); } });
-    return { coin, bonus, opened, flipped, coinCard: c.coin, won: isWon(st) };
+    return Object.assign({ coin, bonus, opened, flipped, coinCard: c.coin, won: isWon(st) }, fx);
   }
 
   function draw(st) {
@@ -171,6 +232,10 @@
     const c = st.stock[st.si++];
     st.waste.push({ r: c.r, s: c.s });
     st.streak = 0; st.moves++;
+    st.draws = (st.draws || 0) + 1;
+    st.lastEaten = null;
+    // boss: žralok po každém 3. líznutí sežere další kartu z balíčku
+    if (st.boss && st.draws % BOSS_EVERY === 0 && stockLeft(st) > 0) { st.lastEaten = st.stock[st.si++]; st.eaten = (st.eaten || 0) + 1; }
     return c;
   }
 
@@ -230,8 +295,8 @@
   function restore(st, json) { const o = JSON.parse(json); o.sol = st.sol; return o; }
 
   CD.Engine = {
-    RANKS, SUITS, mulberry32, adjacent, wrap,
-    newGame, isFree, isLocked, top, canPlay, playable, stockLeft, hasMoves, isWon, remaining,
+    RANKS, SUITS, mulberry32, adjacent, wrap, BOSS_EVERY,
+    newGame, isFree, isLocked, blockReason, limitReached, top, canPlay, playable, stockLeft, hasMoves, isWon, remaining,
     play, draw, useWild, shuffle, addStock, stars, plusPrice, snap, restore,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

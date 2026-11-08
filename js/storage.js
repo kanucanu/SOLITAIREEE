@@ -6,6 +6,7 @@
   'use strict';
   const CD = root.CD = root.CD || {};
   const KEY = 'koraloveSny.save.v1';
+  const SCENES = 10;                   // počet dekoračních scén (2 světy × 5)
 
   function defaults() {
     return {
@@ -13,17 +14,23 @@
       coins: 500,                        // mince
       stars: 0,                          // hvězdičky k utrácení za úkoly ve scénách
       best: {},                          // nejlepší počet hvězd v levelu { "1": 3 }
-      unlocked: 1,                       // nejvyšší odemčený level (51 = vše dohráno)
+      unlocked: 1,                       // nejvyšší odemčený level (101 = vše dohráno)
       scene: 0,                          // index aktuální scény
-      tasks: [0, 0, 0, 0, 0],            // počet splněných úkolů v každé scéně
-      chests: [false, false, false, false, false],
+      tasks: new Array(SCENES).fill(0),  // počet splněných úkolů v každé scéně
+      chests: new Array(SCENES).fill(false),
       boosters: { wild: 2, undo: 3, shuffle: 1 },
       settings: { sound: true, music: true, hints: true },
       bonusAt: 0,                        // kdy půjde vyzvednout další bonus (ms)
       run: null,                         // rozehraný level { level, state }
       tips: {},                          // které nápovědy už hráč viděl
       introSeen: [],                     // úvodní řeči scén
-      stats: { played: 0, wins: 0, bestStreak: 0 },
+      stats: { played: 0, wins: 0, bestStreak: 0, boss: 0, obst: 0, daily: 0, chal: 0 },
+      daily: { last: -1, step: -1 },     // denní výzva: poslední splněný den a krok kalendáře 0–6
+      stickers: {},                      // sbírka nálepek { id: počet }
+      sets: {},                          // vyzvednuté odměny za kompletní sady
+      chal: {},                          // splněné 3★ výzvy { "12": true }
+      ach: {},                           // získané úspěchy { id: true }
+      res: {},                           // obyvatelé scén: den posledního dárku { "0-1": 20400 }
     };
   }
 
@@ -32,15 +39,20 @@
     if (!src || typeof src !== 'object') return d;
     for (const k of Object.keys(d)) {
       if (!(k in src)) continue;
-      if (['boosters', 'settings', 'stats'].includes(k) && src[k] && typeof src[k] === 'object') d[k] = Object.assign(d[k], src[k]);
+      if (['boosters', 'settings', 'stats', 'daily'].includes(k) && src[k] && typeof src[k] === 'object') d[k] = Object.assign(d[k], src[k]);
       else d[k] = src[k];
     }
-    if (!Array.isArray(d.tasks) || d.tasks.length !== 5) d.tasks = defaults().tasks;
-    if (!Array.isArray(d.chests) || d.chests.length !== 5) d.chests = defaults().chests;
+    // starší uložené hry měly jen 5 scén – doplnit na 10
+    const pad = (arr, v) => { const a = Array.isArray(arr) ? arr.slice(0, SCENES) : []; while (a.length < SCENES) a.push(v); return a; };
+    d.tasks = pad(d.tasks, 0).map(n => Math.max(0, Math.min(6, n | 0)));
+    d.chests = pad(d.chests, false).map(Boolean);
+    ['stickers', 'sets', 'chal', 'ach', 'res'].forEach(k => { if (!d[k] || typeof d[k] !== 'object' || Array.isArray(d[k])) d[k] = {}; });
     if (!Array.isArray(d.introSeen)) d.introSeen = [];
     d.coins = Math.max(0, Math.floor(+d.coins || 0));
     d.stars = Math.max(0, Math.floor(+d.stars || 0));
-    d.unlocked = Math.min(51, Math.max(1, Math.floor(+d.unlocked || 1)));
+    d.unlocked = Math.min(101, Math.max(1, Math.floor(+d.unlocked || 1)));
+    d.scene = Math.max(0, Math.min(SCENES - 1, d.scene | 0));
+    while (d.scene < SCENES - 1 && d.chests[d.scene]) d.scene++;   // kdo dokončil svět 1, pokračuje scénou 6
     return d;
   }
 
